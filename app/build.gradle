@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 
-apply plugin: 'com.canzhang.method_call_record_plugin'
+apply plugin: 'com.gamehelper.method_call_record_plugin'
 methodCallRecordExtension {
 //    //日志打印测试，不知道方法描述怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
     methodTest = ["nativeCompress"]

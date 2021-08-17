@@ -2,8 +2,8 @@ package com.canzhang.asmdemo;
 
 import android.app.Application;
 
-import com.canzhang.method_call_record_lib.MethodRecordSDK;
-import com.canzhang.method_call_record_lib.RecordCallListener;
+import com.gamehelper.method_call_record_lib.MethodRecordSDK;
+import com.gamehelper.method_call_record_lib.RecordCallListener;
 
 
 public class MyApplication extends Application {
@@ -33,10 +33,6 @@ public class MyApplication extends Application {
                 android.util.Log.e("MethodRecordSDK", String.format("\n\n----------------------%s调用堆栈结束------------------------\n\n", "敏感函数"));
             }
 
-            @Override
-            public void onRecordLoadFiled(String s) {
-
-            }
         });
     }
 
