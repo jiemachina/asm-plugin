@@ -16,7 +16,7 @@ import static org.objectweb.asm.Opcodes.ASM6;
 public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     private String className;
-    private String sdkClassPath = "com/canzhang/method_call_record_lib/MethodRecordSDK";
+    private String sdkClassPath = "com/gamehelper/method_call_record_lib/MethodRecordSDK";
 
 
     MethodCallRecordClassAdapter(final ClassVisitor cv) {

@@ -1,21 +1,14 @@
 # ASMDemo
 ASM简单用法范例，主要用于学习和简单测试使用。
 
+如果同一个版本发布，android studio 未更新，可以执行如下命令进行更新，避免频繁升级：
+./gradlew clean --refresh-dependencies
+
 ## module 说明
-* app:主module
+* app:主module,用于写一些测试插桩效果的的测试代码
 
-### 插桩简单测试module
-* plugin:用于插桩简单测试的lib
-* 文章介绍：https://www.jianshu.com/p/0a56e151e00b
-
-### 异常捕获插桩module
-* try_catch_plugin:测试指定方法异常捕获的lib
-
-### 插桩实现线程监控
-* thread_lib:插桩代码库
-* thread_plugin：插桩插件
 
 ### 插桩实现敏感方法调用监控
-* method_call_record_lib ：插桩代码库
+* method_call_record_lib ：插桩代码库（就是插桩所要插入的代码，不集成的话插桩依然会成功，但是运行找不到类会崩溃）
 * method_call_record_plugin：插桩插件
-* 介绍：https://www.jianshu.com/p/70e14250cccc
+
