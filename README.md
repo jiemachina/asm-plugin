@@ -126,9 +126,20 @@ public class MyApplication extends Application {
 
 
 
+
+
+## 升级日志
+### 1.0.0-SNAPSHOT (2021-08-18)
+#### Features
+插件首次发布，支持以下能力：
+* 方法调用检测（模糊匹配、精准匹配、打印静态筛查日志）
+
+#### FIX
+
 ## 附录
 ### 测试阶段同一个版本的aar发布后，androidStudio未更新问题
 如果同一个版本发布(SNAPSHOT后缀的)，android studio 未更新，可以执行如下命令进行更新，避免频繁升级：
 ./gradlew clean --refresh-dependencies
+
 
 
