@@ -1,14 +1,16 @@
 package com.gamehelper.plugin;
 
+import static org.objectweb.asm.Opcodes.ASM6;
+
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.objectweb.asm.Opcodes.ASM6;
 
 /**
  * ClassVisitor:主要负责遍历类的信息，包括类上的注解、构造方法、字段等等。
@@ -17,7 +19,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     private String className;
     private String sdkClassPath = "com/gamehelper/method_call_record_lib/MethodRecordSDK";
-
+    private String[] mInterfaces;//当前所扫描的类实现的接口
 
     MethodCallRecordClassAdapter(final ClassVisitor cv) {
         //注意这里的版本号要留意，不同版本可能会抛出异常，仔细观察异常
@@ -37,9 +39,16 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.className = name;
+        mInterfaces = interfaces;
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
+
+    @Override
+    public void visitEnd() {
+        super.visitEnd();
+
+    }
 
     /**
      * 这里可以拿到关于method的所有信息，比如方法名，方法的参数描述等
@@ -60,8 +69,31 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
         mv = new AdviceAdapter(ASM6, mv, access, outName, desc) {
 
             @Override
+            public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+                super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+
+//                try {
+//                    String desc2 = bsmArgs[0].toString();
+//                    //返回类型（方法所属类）、调用方法的方法名、调用方法的描述符
+//                    String key = Type.getReturnType(desc).getDescriptor() + name + desc2;
+//                    LogUtils.log("xxxxxxxxx===========>>>>>>>>>：" + desc2 + "\nkey:" + key);
+//                } catch (Exception e) {
+//
+//                }
+//
+//
+//                LogUtils.log("---------visitInvokeDynamicInsn------>>>>>\nname:" + name + "\ndesc:" + desc + "\noutMethodName（上层类名_方法名）:" + className + "_" + outName);
+//                if (bsmArgs != null) {
+//                    for (int i = 0; i < bsmArgs.length; i++) {
+//                        Object arg = bsmArgs[i];
+//                        LogUtils.log("参数列表：" + arg + "  类型：" + arg.getClass().getSimpleName());
+//                    }
+//                }
+            }
+
+            @Override
             public void visitLdcInsn(Object cst) {//访问一些常量
-                if(cst instanceof  String){
+                if (MethodCallRecordExtension.methodTest != null && MethodCallRecordExtension.methodTest.contains("loadLibrary") && cst instanceof String) {
                     mLdcList.add((String) cst);
                 }
                 super.visitLdcInsn(cst);
@@ -95,45 +127,22 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                             + "\n\nsignature（方法泛型信息：）:" + signature
                             + "\n\nclassName（当前扫描的类名）:" + className);
                 }
-                //模糊匹配方法（忽略方法归属的类名）
-                if (MethodCallRecordExtension.fuzzyMethodMap != null
-                        && MethodCallRecordExtension.fuzzyMethodMap.containsKey(outName)
-                        && MethodCallRecordExtension.fuzzyMethodMap.get(outName)!=null) {
-
-                    if(MethodCallRecordExtension.fuzzyMethodMap.get(outName).size()>0){//有配置，就按照配置来匹配
-                        for (String item: MethodCallRecordExtension.fuzzyMethodMap.get(outName)) {
-                            if(item!=null&&item.equals(desc)){
-                                //命中，则插桩
-                                inputMethod(outName);
-                                break;
-                            }
-
-                        }
-                    }else{//没有配置就通配
-                        //命中，则插桩
-                        inputMethod(outName);
-                    }
-
-                }
+                hookMethod(className, outName, desc, MethodCallRecordExtension.hookMethodEnterMap);
             }
+
 
             @Override
             protected void onMethodExit(int opcode) {
                 super.onMethodExit(opcode);
-                if(isInvokeLoadLibrary.get() &&mLdcList.size()>0){
+                if (isInvokeLoadLibrary.get() && mLdcList.size() > 0) {
                     StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append("\n\n发现方法调用 loadLibrary  className（当前扫描的类名）:" + className);
-                    stringBuilder.append("\n------方法体加载的常量 开始--------\n");
-                    for (String item :mLdcList) {
+                    //用于判断加载了什么so
+                    stringBuilder.append("\n------loadLibrary所在方法体加载的常量 开始--------\n");
+                    for (String item : mLdcList) {
                         stringBuilder.append(item).append("\n");
                     }
-                    stringBuilder.append("------方法体加载的常量 结束--------");
-                    LogUtils.log(stringBuilder
-                            + "\naccess（方法修饰符）:" + access
-                            + "\noutName（方法名）:" + outName
-                            + "\ndesc（方法描述（就是（参数列表）返回值类型拼接））:" + desc
-                            + "\nsignature（方法泛型信息：）:" + signature
-                            + "\nclassName（当前扫描的类名）:" + className+"\n\n");
+                    stringBuilder.append("------loadLibrary所在方法体加载的常量 结束--------");
+                    LogUtils.log(stringBuilder.toString());
                 }
             }
 
@@ -158,45 +167,63 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                             + "\n\ndescriptor（方法描述（就是（参数列表）返回值类型拼接））:" + descriptor
                             + "\n\nsignature（方法泛型信息：）:" + signature
                             + "\n\nclassName（当前扫描的类名）:" + className);
-                }
-                if("java/lang/System".equals(owner)&&"loadLibrary".equals(name)&&"(Ljava/lang/String;)V".equals(descriptor)){
-                    isInvokeLoadLibrary.set(true);
-                }
 
-                if (MethodCallRecordExtension.accurateMethodMap != null
-                        && MethodCallRecordExtension.accurateMethodMap.containsKey(owner)
-                        && MethodCallRecordExtension.accurateMethodMap.get(owner) != null
-                        && MethodCallRecordExtension.accurateMethodMap.get(owner).size() > 0) {
-                    for (String item: MethodCallRecordExtension.accurateMethodMap.get(owner)) {
-                        if(item!=null&&item.equals(name+descriptor)){
-                            //命中，则插桩
-                            inputMethod(name);
-                            break;
-                        }
-
+                    //针对loadLibrary 的特别处理，因为我们想筛查load的是什么so，一般我们写法会loadLibrary（"xxxx"）,我们把所有的字符串类型常量都打印出来，协助我们筛查
+                    if ("java/lang/System".equals(owner) && "loadLibrary".equals(name) && "(Ljava/lang/String;)V".equals(descriptor)) {
+                        isInvokeLoadLibrary.set(true);
                     }
                 }
 
-//                if (opcode == Opcodes.INVOKESTATIC) {//调用静态方法
-//
-//                    if (!isSdkPath() && ("android/provider/Settings$System".equals(owner) || "android/provider/Settings$Secure".equals(owner)) && name.equals("getString") && descriptor.equalsIgnoreCase("(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;")) {
-//                        //变更父类
-//                        super.visitMethodInsn(opcode, sdkClassPath, name, descriptor, isInterface);
-//                        return;
-//                    }
-//                }
+                hookMethod(owner, name, descriptor, MethodCallRecordExtension.hookMethodInvokeMap);
                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
             }
 
-            private void inputMethod(String recordMethodName) {
-                if (!isSdkPath() && recordMethodName != null) {
-//                    LogUtils.log("----------命中----->>>"+className + "_" + outName + "_call:" + recordMethodName);
-                    //加载一个常量
-                    mv.visitLdcInsn(className + "_" + outName + "_call:" + recordMethodName);
-                    //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
-                    mv.visitMethodInsn(INVOKESTATIC, sdkClassPath, "recordMethodCall", "(Ljava/lang/String;)V", false);
+            /**
+             * 匹配方法，进行插桩
+             * @param owner 方法实现或归属类
+             * @param name 方法名
+             * @param descriptor 方法描述符
+             * @param map 用户配置信息
+             */
+            private void hookMethod(String owner, String name, String descriptor, Map<String, List<String>> map) {
+                if (map != null && map.size() > 0) {
+
+                    String methodNameAndDesc = name + descriptor;
+                    /**
+                     * 下面三个是并集，如果填入重复（比如空值key填入的方法和下面两个有重复的情况），则会多次插入
+                     */
+                    //仅方法匹配，不关心方法归属类或者实现接口
+                    hook(map, methodNameAndDesc, "");
+                    //匹配方法实现类
+                    hook(map, methodNameAndDesc, owner);
+                    //匹配方法归属的接口
+                    for (String anInterface : mInterfaces) {
+                        if (hook(map, methodNameAndDesc, anInterface)) {
+                            break;
+                        }
+                    }
                 }
             }
+
+            private boolean hook(Map<String, List<String>> map, String methodNameAndDesc, String key) {
+                if (map.containsKey(key)) {
+                    List<String> methodList = map.get(key);
+                    if (methodList != null && methodList.contains(methodNameAndDesc)) {
+                        //命中插桩
+                        if (!isSdkPath() && methodNameAndDesc != null) {
+                            //LogUtils.log("----------命中----->>>"+className + "_" + outName + "_call:" + recordMethodName);
+                            //加载一个常量(当前所在类、调用处的方法、被调用的方法)
+                            mv.visitLdcInsn(className + "." + outName + " call: " + methodNameAndDesc);
+                            //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
+                            mv.visitMethodInsn(INVOKESTATIC, sdkClassPath, "recordMethodCall", "(Ljava/lang/String;)V", false);
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+
         };
         return mv;
 

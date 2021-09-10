@@ -13,24 +13,15 @@ public class MyApplication extends Application {
         MethodRecordSDK.setRecordCallListener(new RecordCallListener() {
             @Override
             public void onRecordMethodCall(String s) {
-                if(s.contains("queryIntentActivities")){
-                    return;
-                }
-                if(s.contains("getRunningAppProcesses")){
-                    return;
-                }
-                if(s.contains("getHostAddress")){
-                    return;
-                }
                 android.util.Log.e("MethodRecordSDK", "调用的方法是：" + s);
-                android.util.Log.e("MethodRecordSDK", String.format("\n\n----------------------%s调用堆栈开始------------------------\n\n", "敏感函数"));
+                android.util.Log.e("MethodRecordSDK", String.format("\n\n----------------------%s调用堆栈开始------------------------\n\n", "函数"));
                 StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 
                 for(int i = 0; i < stackTraceElements.length; ++i) {
                     android.util.Log.d("MethodRecordSDK", stackTraceElements[i].toString());
                 }
 
-                android.util.Log.e("MethodRecordSDK", String.format("\n\n----------------------%s调用堆栈结束------------------------\n\n", "敏感函数"));
+                android.util.Log.e("MethodRecordSDK", String.format("\n\n----------------------%s调用堆栈结束------------------------\n\n", "函数"));
             }
 
         });
@@ -39,5 +30,6 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Runnable test = () -> System.out.println("xxxxxxx");
     }
 }
