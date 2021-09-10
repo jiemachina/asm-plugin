@@ -158,7 +158,9 @@ public class MyApplication extends Application {
 插件首次发布，支持以下能力：
 * 方法调用检测（模糊匹配、精准匹配、打印静态筛查日志）
 
-#### FIX
+### 1.0.1-SNAPSHOT (2021-09-10)
+#### Features
+* 内部类调用方式支持严格匹配，可以匹配方法归属的接口
 
 ## 附录
 ### 测试阶段同一个版本的aar发布后，androidStudio未更新问题
