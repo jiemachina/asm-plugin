@@ -148,7 +148,18 @@ public class MyApplication extends Application {
 
 然后就可以buuild 进行使用了
 
+* 7、支持lambda表达式hook
+java 8支持了 lambda表达式，这涉及了一个脱糖流程，如果不关闭D8脱糖的话，我们拿到的.class 是未脱糖的， 这样按照现有逻辑，
+  就无法hook到，因为本插件仅测试场景应用，所以这里我们可以配置临时关闭D8脱糖,使用原来的`desugar`进行处理即可hook到。
 
+可以通过在 gradle.properties 里配置
+```
+android.enableD8.desugaring=false
+```
+当然也是可以在通过某些手段直接支持脱糖hook的，具体可参考以下文章：
+**lambda 脱糖流程参考**
+https://opensource.sensorsdata.cn/opensource/lambda-%e8%ae%be%e8%ae%a1%e5%8f%82%e8%80%83/
+https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-%e5%92%8c%e6%96%b9%e6%b3%95%e5%bc%95%e7%94%a8-%e6%95%b0%e6%8d%ae%e9%87%87%e9%9b%86/
 
 
 
@@ -168,9 +179,7 @@ public class MyApplication extends Application {
 ./gradlew clean --refresh-dependencies
 
 ### 参考文章
-* lambda
-https://opensource.sensorsdata.cn/opensource/lambda-%e8%ae%be%e8%ae%a1%e5%8f%82%e8%80%83/
-https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-%e5%92%8c%e6%96%b9%e6%b3%95%e5%bc%95%e7%94%a8-%e6%95%b0%e6%8d%ae%e9%87%87%e9%9b%86/
+
 
 
 
