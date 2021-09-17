@@ -7,7 +7,7 @@ methodCallRecordExtension {
      * 日志打印测试，不知道方法描述怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
      * 额外说明：特殊处理：loadLibrary 会额外打印一些所在方法体的调用常量，便于定位加载的什么so
      */
-    methodTest = ["loadLibrary"]
+//    methodTest = ["loadLibrary"]
 
     /**
      * 方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）

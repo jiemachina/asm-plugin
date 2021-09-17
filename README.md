@@ -37,7 +37,7 @@ maven {url 'https://mirrors.tencent.com/repository/maven/tencent_public/'}
 * 2、在工程gradle中引入插件库
 ```
 dependencies {
-    classpath 'com.gamehelper.android:method_call_plugin:1.0.0-SNAPSHOT'
+    classpath 'com.gamehelper.android:method_call_plugin:1.0.2-SNAPSHOT'
 }
 ```
 * 3、在主module中引入lib库
@@ -150,7 +150,8 @@ public class MyApplication extends Application {
 
 * 7、支持lambda表达式hook
 java 8支持了 lambda表达式，这涉及了一个脱糖流程，如果不关闭D8脱糖的话，我们拿到的.class 是未脱糖的， 这样按照现有逻辑，
-  就无法hook到，因为本插件仅测试场景应用，所以这里我们可以配置临时关闭D8脱糖,使用原来的`desugar`进行处理即可hook到。
+就无法hook到，因为本插件仅测试场景应用，所以这里我们可以配置临时关闭D8脱糖,使得.class 文件的处理流程变成：
+.class → desugar → third-party plugins → dex，从而方便我们hook到
 
 可以通过在 gradle.properties 里配置
 ```
@@ -164,14 +165,49 @@ https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-
 
 
 ## 升级日志
-### 1.0.0-SNAPSHOT (2021-08-18)
+### 1.0.2-SNAPSHOT (2021-09-17)
 #### Features
-插件首次发布，支持以下能力：
-* 方法调用检测（模糊匹配、精准匹配、打印静态筛查日志）
+* 插入行号，方便方法体插入的配置，堆栈能够快速定位到行号。
 
 ### 1.0.1-SNAPSHOT (2021-09-10)
 #### Features
 * 内部类调用方式支持严格匹配，可以匹配方法归属的接口
+
+### 1.0.0-SNAPSHOT (2021-08-18)
+#### Features
+插件首次发布，支持以下能力：
+* 方法调用检测（模糊匹配、精准匹配、打印静态筛查日志）
+例如 onClick 堆栈原来是这样的
+```
+...略...
+//没有明确行号。不能快捷点击堆栈进入代码
+D/MethodRecordSDK: com.tencent.gamehelper.ui.moment.SubmitMomentActivity$7.onClick(UnknowSource:2)
+...略...
+```
+插入行号后
+
+```
+...略...
+//有明确行号，可以快速点击堆栈进入指定位置
+D/MethodRecordSDK: com.tencent.gamehelper.ui.moment.SubmitMomentActivity$7.onClick(SubmitMomentActivity.java:485)
+...略...
+```
+
+说明：为了简单，我们针对方法体插桩，都是在方法进入时机插入的（这样不用考虑返回和异常等分支逻辑处理），
+而方法进入那一刻还没有扫描到方法体内的行号，本次插入的行号，所以我们本次为了简单插入的是上一指令的行号，
+也就是`hook方法`的上一条指令的行号（我们只是想快速找到调用位置，所以已经能满足我们的需求）
+
+**示例说明**
+```
+popupWindowView.setOnClickListener(new View.OnClickListener() {//实际指向位置（我们是插入的这个行号，所以点击堆栈会定位到这里）
+    @Override
+    public void onClick(View v) {//真实行号位置
+        popupWindow.dismiss();
+    }
+});
+
+```
+
 
 ## 附录
 ### 测试阶段同一个版本的aar发布后，androidStudio未更新问题

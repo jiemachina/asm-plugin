@@ -4,6 +4,7 @@ import android.app.Service;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,8 +25,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.bt_test0).setOnClickListener(v -> {
-            testMethodCallOrFieldLod();
-            System.out.println("哈哈0");
+            Toast.makeText(MainActivity.this,"哈哈0",Toast.LENGTH_SHORT).show();
         });
 
         findViewById(R.id.bt_test).setOnClickListener(new View.OnClickListener() {

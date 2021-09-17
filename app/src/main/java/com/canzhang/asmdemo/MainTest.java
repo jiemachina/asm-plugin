@@ -1,12 +1,13 @@
 package com.canzhang.asmdemo;
 
-import com.canzhang.asmdemo.test.JavaCodeTest;
+import android.view.View;
 
 public class MainTest {
     public static void main(String[] args) {
-        new JavaCodeTest();
-        System.out.println("===============>>>>>>>xxxxxxxxxxxxxx");
-
-        new Thread().start();
     }
+
+    public void onClick(View v) {
+        System.out.println("哈哈1");
+    }
+
 }
