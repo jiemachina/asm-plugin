@@ -173,7 +173,7 @@ https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-
 ```
 ...略...
 //没有明确行号。不能快捷点击堆栈进入代码
-D/MethodRecordSDK: com.tencent.gamehelper.ui.moment.SubmitMomentActivity$7.onClick(UnknowSource:2)
+D/MethodRecordSDK: com.canzhang.MyActivity$7.onClick(UnknowSource:2)
 ...略...
 ```
 插入行号后
@@ -181,7 +181,7 @@ D/MethodRecordSDK: com.tencent.gamehelper.ui.moment.SubmitMomentActivity$7.onCli
 ```
 ...略...
 //有明确行号，可以快速点击堆栈进入指定位置
-D/MethodRecordSDK: com.tencent.gamehelper.ui.moment.SubmitMomentActivity$7.onClick(SubmitMomentActivity.java:485)
+D/MethodRecordSDK: com.canzhang.MyActivity$7.onClick(MyActivity.java:485)
 ...略...
 ```
 
