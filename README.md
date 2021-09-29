@@ -37,7 +37,7 @@ maven {url 'https://mirrors.tencent.com/repository/maven/tencent_public/'}
 * 2、在工程gradle中引入插件库
 ```
 dependencies {
-    classpath 'com.gamehelper.android:method_call_plugin:1.0.2-SNAPSHOT'
+    classpath 'com.gamehelper.android:method_call_plugin:1.0.3-SNAPSHOT'
 }
 ```
 * 3、在主module中引入lib库
@@ -48,11 +48,11 @@ dependencies {
 ```
 * 4、在主module中注册插件，并添加配置信息
 几个`gradle`配置项
-  a、methodTest：日志打印测试，不知道方法描述怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
-  b、hookMethodEnterMap:方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）
-  c、hookMethodInvokeMap：方法调用插桩：精准匹配（用于监控方法调用情况，因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
-  d、ignorePath：配置忽略插桩的模块 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
-  e、replaceMethodInvokeMap：替换方法调用（注意要自行实现替换的方法，可参考工程中的ReplaceInvokeMethodApi实现）
+  * `methodTest`：日志打印测试，不知道方法描述怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
+  * `hookMethodEnterMap`:方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）
+  * `hookMethodInvokeMap`：方法调用插桩：精准匹配（用于监控方法调用情况，因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
+  * `ignorePath`：配置忽略插桩的模块 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
+  * `replaceMethodInvokeMap`：替换方法调用（注意要自行实现替换的方法，可参考工程中的ReplaceInvokeMethodApi实现）
 ```
 apply plugin: 'com.gamehelper.method_call_record_plugin'
 methodCallRecordExtension {
