@@ -23,18 +23,6 @@ public class MethodRecordSDK {
 
 
     /**
-     * 对于静态方法，可以直接替换实现，这样可以做更多的操作
-     *
-     * @param resolver
-     * @param name
-     * @return
-     */
-    public synchronized static String getString(ContentResolver resolver, String name) {
-        recordCallListener.onRecordMethodCall("敏感函数 getString：" + name);
-        return Settings.System.getString(resolver, name);
-    }
-
-    /**
      * 设置回调
      * @param recordCallListener
      */

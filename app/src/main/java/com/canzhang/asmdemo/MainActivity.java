@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
                 builder.append("\n-------敏感函数替换调用测试---开始-------");
 
-                Log.e("MyTest", builder.toString());
+                Log.e("MethodRecordSDK", builder.toString());
 
             }
         });
