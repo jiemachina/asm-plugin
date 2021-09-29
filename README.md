@@ -47,6 +47,12 @@ dependencies {
 }
 ```
 * 4、在主module中注册插件，并添加配置信息
+几个`gradle`配置项
+  a、methodTest：日志打印测试，不知道方法描述怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
+  b、hookMethodEnterMap:方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）
+  c、hookMethodInvokeMap：方法调用插桩：精准匹配（用于监控方法调用情况，因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
+  d、ignorePath：配置忽略插桩的模块 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
+  e、replaceMethodInvokeMap：替换方法调用（注意要自行实现替换的方法，可参考工程中的ReplaceInvokeMethodApi实现）
 ```
 apply plugin: 'com.gamehelper.method_call_record_plugin'
 methodCallRecordExtension {
@@ -105,6 +111,52 @@ methodCallRecordExtension {
             "android/provider/Settings\$System" : ["getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
             "android/provider/Settings\$Secure" : ["getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"]
     ]
+    
+    
+    /**
+     * 配置忽略插桩的模块 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
+     */
+//    ignorePath = ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi"]
+
+
+    /**
+     * 替换方法调用（注意要自行实现替换的方法，下面配置的路径也要调整一下，可参考ReplaceInvokeMethodApi）
+     * key : 需要替换的 方法归属类+"."+方法名+方法描述   如：android/telephony/TelephonyManager.getLine1Number()Ljava/lang/String;
+     * list item value : 替换成  index0=类名，如：com/canzhang/ImplTelephonyManager；  index1=方法名，如：getLine1Number；  index2=方法描述符，如：  ()Ljava/lang/String; ； 严格按照顺序填入
+     */
+    replaceMethodInvokeMap = [
+            "android/telephony/TelephonyManager.getLine1Number()Ljava/lang/String;"                                             : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getPhoneNumberImpl",
+                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+            "android/telephony/TelephonyManager.getDeviceId()Ljava/lang/String;"                                                : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getDeviceIdImpl",
+                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+            "android/telephony/TelephonyManager.getSimSerialNumber()Ljava/lang/String;"                                         : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getSimSerialNumberImpl",
+                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+            "android/telephony/TelephonyManager.getSubscriberId()Ljava/lang/String;"                                            : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getSubscriberIdImpl",
+                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+            "android/net/wifi/WifiInfo.getMacAddress()Ljava/lang/String;"                                                       : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getMacAddressImpl",
+                                                                                                                                   "(Landroid/net/wifi/WifiInfo;)Ljava/lang/String;"],
+            "android/net/wifi/WifiInfo.getSSID()Ljava/lang/String;"                                                             : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getSSIDImpl",
+                                                                                                                                   "(Landroid/net/wifi/WifiInfo;)Ljava/lang/String;"],
+            "java/net/NetworkInterface.getInetAddresses()Ljava/util/Enumeration;"                                               : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getInetAddressesImpl",
+                                                                                                                                   "(Ljava/net/NetworkInterface;)Ljava/util/Enumeration;"],
+            "java/net/InetAddress.getHostAddress()Ljava/lang/String;"                                                           : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getHostAddressImpl",
+                                                                                                                                   "(Ljava/net/InetAddress;)Ljava/lang/String;"],
+            "android/provider/Settings\$System.getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getStringImpl",
+                                                                                                                                   "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
+            "android/provider/Settings\$Secure.getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+                                                                                                                                   "getStringImpl",
+                                                                                                                                   "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
+    ]
+
 
 }
 ```
@@ -188,7 +240,10 @@ D/MethodRecordSDK: com.canzhang.MyActivity$7.onClick(MyActivity.java:485)
 说明：为了简单，我们针对方法体插桩，都是在方法进入时机插入的（这样不用考虑返回和异常等分支逻辑处理），
 而方法进入那一刻还没有扫描到方法体内的行号，本次插入的行号，所以我们本次为了简单插入的是上一指令的行号，
 也就是`hook方法`的上一条指令的行号（我们只是想快速找到调用位置，所以已经能满足我们的需求）
-
+### 1.0.3-SNAPSHOT (2021-09-10)
+#### Features
+* 新增方法调用替换能力
+应用于替换方法调用实现，比如`getDeviceId`方法我们可以在调用处替换成自己的实现。
 ### 1.0.1-SNAPSHOT (2021-09-10)
 #### Features
 * 内部类调用方式支持严格匹配，可以匹配方法归属的接口
