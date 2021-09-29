@@ -2,10 +2,12 @@ package com.gamehelper.plugin;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 
+import org.apache.http.util.TextUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import java.util.ArrayList;
@@ -66,10 +68,14 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
     public MethodVisitor visitMethod(final int access, final String outName,
                                      final String desc, final String signature, final String[] exceptions) {
         MethodVisitor mv = super.visitMethod(access, outName, desc, signature, exceptions);
+        if (isSdkPath()) {
+            return mv;
+        }
         final AtomicBoolean isInvokeLoadLibrary = new AtomicBoolean(false);
         List<String> mLdcList = new ArrayList<>();
 
         mv = new AdviceAdapter(ASM6, mv, access, outName, desc) {
+
 
             /**
              * 访问到 InvokeDynamic 指令
@@ -140,17 +146,11 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
             @Override
             public void visitLabel(Label label) {
                 super.visitLabel(label);
-                if (className.contains("MainTest")) {
-                    LogUtils.log("label:" + label);
-                }
             }
 
             @Override
             protected void onMethodEnter() {
                 super.onMethodEnter();
-                if (className.contains("MainTest")) {
-                    LogUtils.log("onMethodEnter:" + outName);
-                }
                 //打印方法信息
                 if (MethodCallRecordExtension.methodTest != null && MethodCallRecordExtension.methodTest.contains(outName)) {
                     LogUtils.log("\n\n\n\n----------测试打印数据---form 方法进入 -->>>>>"
@@ -167,9 +167,6 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
             @Override
             protected void onMethodExit(int opcode) {
                 super.onMethodExit(opcode);
-                if (className.contains("MainTest")) {
-                    LogUtils.log("onMethodExit:" + outName);
-                }
                 if (isInvokeLoadLibrary.get() && mLdcList.size() > 0) {
                     StringBuilder stringBuilder = new StringBuilder();
                     //用于判断加载了什么so
@@ -192,7 +189,22 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
              */
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                //打印方法信息
+                //打印方法调用信息
+                printMethodInfo(opcode, owner, name, descriptor, isInterface);
+                //方法调用处插桩（不影响原有运行逻辑）
+                hookMethod(owner, name, descriptor, MethodCallRecordExtension.hookMethodInvokeMap);
+                //替换方法调用（替换了原有方法调用，自行实现方法逻辑）
+                if (replaceInvokeMethod(owner, name, descriptor)) {
+                    return;
+                }
+                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+
+            }
+
+            /**
+             * 打印方法调用信息
+             */
+            private void printMethodInfo(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                 if (MethodCallRecordExtension.methodTest != null && MethodCallRecordExtension.methodTest.contains(name)) {
                     LogUtils.log("\n\n\n\n----------测试打印数据---方法调用（与onMethodEnter 可能存在重复打印） -->>>>>"
                             + "\nopcode（方法调用指令）:" + opcode
@@ -209,9 +221,41 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                         isInvokeLoadLibrary.set(true);
                     }
                 }
+            }
 
-                hookMethod(owner, name, descriptor, MethodCallRecordExtension.hookMethodInvokeMap);
-                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+            /**
+             * 替换方法调用
+             * @return 是否命中替换
+             */
+            private boolean replaceInvokeMethod(String owner, String name, String descriptor) {
+                String replaceInvokeMethodKey = owner + "." + name + descriptor;
+                if (MethodCallRecordExtension.replaceMethodInvokeMap != null
+                        && MethodCallRecordExtension.replaceMethodInvokeMap.containsKey(replaceInvokeMethodKey)) {
+                    List<String> list = MethodCallRecordExtension.replaceMethodInvokeMap.get(replaceInvokeMethodKey);
+                    if (list != null && list.size() == 3) {
+                        String replaceClassOwner = list.get(0);
+                        String replaceMethodName = list.get(1);
+                        String replaceMethodDesc = list.get(2);
+
+
+                        //安全处理：避免同一个类替换，防止陷入死循环，另外也可以通过配置 MethodCallRecordExtension.ignorePath 来主动过滤（这里这么写主要是防止用户忘记配置ignorePath的情况）
+                        if (className.equals(replaceClassOwner)) {
+                            LogUtils.loge("\n\n\n\n-----提醒----返回安全处理：方法替换禁止同一个类的方法替换，避免陷入死循环-->>>>>"
+                                    + "\n当前扫描类：" + className
+                                    + "\n替换方法：" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
+                            return false;
+                        }
+                        if (!TextUtils.isEmpty(replaceClassOwner) && !TextUtils.isEmpty(replaceMethodName) && !TextUtils.isEmpty(replaceMethodDesc)) {
+//                            LogUtils.log("\n\n\n\n----------visitMethodInsn 开始替换方法调用-->>>>>"
+//                                    + "\n当前命中:" + replaceInvokeMethodKey
+//                                    + "\n替换成:" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
+                            super.visitMethodInsn(Opcodes.INVOKESTATIC, replaceClassOwner, replaceMethodName, replaceMethodDesc, false);
+                            return true;
+                        }
+
+                    }
+                }
+                return false;
             }
 
             /**
@@ -246,18 +290,18 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                     List<String> methodList = map.get(key);
                     if (methodList != null && methodList.contains(methodNameAndDesc)) {
                         //命中插桩
-                        if (!isSdkPath() && methodNameAndDesc != null) {
+                        if (methodNameAndDesc != null) {
                             //LogUtils.log("----------命中----->>>"+className + "_" + outName + "_call:" + recordMethodName);
                             //加载一个常量(当前所在类、调用处的方法、被调用的方法)
                             //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
-                            if (mLastLine != -1 ) {
-                                try{
+                            if (mLastLine != -1) {
+                                try {
                                     //标签标示字节码的位置，用于指定紧随其后的指令
-                                    Label label  = new  Label();
+                                    Label label = new Label();
                                     mv.visitLabel(label);
                                     mv.visitLineNumber(mLastLine, label);
-                                }catch (Exception e){
-                                    LogUtils.log("发生异常："+e.getMessage()+" mLastLine："+mLastLine);
+                                } catch (Exception e) {
+                                    LogUtils.loge("发生异常：" + e.getMessage() + " mLastLine：" + mLastLine);
                                     e.printStackTrace();
                                 }
 
@@ -280,7 +324,16 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
     }
 
     private boolean isSdkPath() {
-        return sdkClassPath.equals(className);
+        return sdkClassPath.equals(className) || isIgnore();
+    }
+
+    private boolean isIgnore() {
+        for (String path : MethodCallRecordExtension.ignorePath) {
+            if (className.startsWith(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

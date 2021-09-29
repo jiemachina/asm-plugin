@@ -10,4 +10,15 @@ public class MainTest {
         System.out.println("哈哈1");
     }
 
+
+    public static String woshiceshi(MainActivity mainActivity) {
+        return "我是测试代码";
+    }
+
+
+
+    public static String test02(String s) {
+        return "hahah"+s;
+    }
+
 }
