@@ -514,6 +514,7 @@ https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-
  //可以变为：
  String myTestField = ReplaceFieldApi.getMyTestField(new MyTest());
 ```
+
 ### 1.0.3-SNAPSHOT (2021-09-17)
 #### Features
 * 插入行号，方便方法体插入的配置，堆栈能够快速定位到行号。
@@ -542,6 +543,8 @@ D/MethodRecordSDK: com.canzhang.MyActivity$7.onClick(MyActivity.java:485)
 #### Features
 * 新增方法调用替换能力
 应用于替换方法调用实现，比如`getDeviceId`方法我们可以在调用处替换成自己的实现。
+  
+
 ### 1.0.1-SNAPSHOT (2021-09-10)
 #### Features
 * 内部类调用方式支持严格匹配，可以匹配方法归属的接口
