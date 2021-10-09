@@ -1,23 +1,17 @@
 package com.canzhang.asmdemo.sdk;
 
-import android.annotation.SuppressLint;
-import android.content.ContentResolver;
-import android.net.wifi.WifiInfo;
 import android.os.Build;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Enumeration;
 
 /**
  * 变量引用替换为方法实现范例
  */
 public class ReplaceFieldApi {
 
+    private static String sBrand = null;
+
     /**
      * 实例方法测试
+     *
      * @param myTest
      * @return
      */
@@ -28,11 +22,14 @@ public class ReplaceFieldApi {
 
     /**
      * 静态方法测试
+     *
      * @return
      */
     public static String getBrand() {
-        return Build.BRAND;
+        if(sBrand==null){
+            return sBrand=Build.BRAND;
+        }
+        return sBrand;
+
     }
-
-
 }

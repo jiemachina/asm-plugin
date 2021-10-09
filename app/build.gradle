@@ -103,10 +103,10 @@ methodCallRecordExtension {
                                                                                                                                    "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
     ]
 
-    fieldTest = ["BRAND","myTestField"]
+    fieldTest = ["BRAND", "myTestField"]
 
-    replaceFieldInvokeMap = ["android/os/Build.BRAND.Ljava/lang/String;":["com/canzhang/asmdemo/sdk/ReplaceFieldApi","getBrand","()Ljava/lang/String;"],
-                             "com/canzhang/asmdemo/sdk/MyTest.myTestField.Ljava/lang/String;":["com/canzhang/asmdemo/sdk/ReplaceFieldApi","getMyTestField","(Lcom/canzhang/asmdemo/sdk/MyTest;)Ljava/lang/String;"]]
+    replaceFieldInvokeMap = ["android/os/Build.BRAND.Ljava/lang/String;"                     : ["com/canzhang/asmdemo/sdk/ReplaceFieldApi", "getBrand", "()Ljava/lang/String;"],
+                             "com/canzhang/asmdemo/sdk/MyTest.myTestField.Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceFieldApi", "getMyTestField", "(Lcom/canzhang/asmdemo/sdk/MyTest;)Ljava/lang/String;"]]
 }
 
 android {

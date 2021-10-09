@@ -117,7 +117,8 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
             @Override
             public void visitFieldInsn(int opcode, String owner, String name, String desc) {
                 if (MethodCallRecordExtension.fieldTest != null && MethodCallRecordExtension.fieldTest.contains(name)) {
-                    LogUtils.log("--------------->>>>>\n\n变量访问 opcode(操作码):" + opcode
+                    LogUtils.log("\n\n\n\n----------测试打印数据---form 变量引用 -->>>>>"
+                            + "\nopcode(要访问的类型指令的操作码):" + opcode
                             + "\nowner（变量归属类）:" + owner
                             + "\nname（变量名）:" + name
                             + "\ndesc（变量描述）:" + desc
@@ -139,9 +140,10 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                                         + "\n当前扫描类：" + className
                                         + "\n替换方法：" + classOwner + "." + methodName + methodDesc);
                             } else if (!TextUtils.isEmpty(classOwner) && !TextUtils.isEmpty(methodName) && !TextUtils.isEmpty(methodDesc)) {
-                                LogUtils.log("\n\n\n\n----------visitMethodInsn 开始替换变量调用-->>>>>"
+                                LogUtils.log("\n\n\n\n----------开始替换变量引用为方法引用-->>>>>"
                                         + "\n当前命中:" + key
-                                        + "\n替换成:" + classOwner + "." + methodName + methodDesc);
+                                        + "\n替换成:" + classOwner + "." + methodName + methodDesc
+                                        + "\noutMethodName（引用处类名_方法名）:" + className + "_" + outName);
                                 //把变量访问修改为调用方法
                                 visitMethodInsn(Opcodes.INVOKESTATIC, classOwner, methodName, methodDesc, false);
                                 //返回，不再插入访问变量指令
