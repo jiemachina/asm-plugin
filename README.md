@@ -1,3 +1,4 @@
+[TOC]
 # 项目介绍
 本项目主要是一些基于asm实现的字节码操作插件，目前有如下插件：
 ## 方法调用检测插件
@@ -17,6 +18,11 @@ android 隐私权限相关的api或者字段要求越来越严格，我们需要
 了解到了敏感api是哪里调用的，但是不好改
 * 第三方sdk内部引用的，但是一时sdk又不能支持修改
 * 较多功能关联，改动较大，时间不够
+* 各sdk频繁获取，需统一收拢做缓存处理
+* ...
+
+#### 敏感字段引用替换为方法引用
+* 被检测频繁获取，想统一收拢，做字段值缓存
 * ...
 
 #### 快速找到点击的位置
@@ -26,7 +32,7 @@ android 隐私权限相关的api或者字段要求越来越严格，我们需要
 * 子父类各种方法复写
 * ...
 
-针对上面的场景我们就可以使用方法调用监控来快速找到调用的位置或者替换调用的方法。
+针对上面的场景我们就可以使用方法调用监控来快速找到调用的位置或者直接进行替换实现。
 
 ### 涉及module
 * app:主module,用于写一些测试插桩效果的的测试代码
@@ -45,18 +51,19 @@ dependencies {
     classpath 'com.gamehelper.android:method_call_plugin:1.0.4-SNAPSHOT'
 }
 ```
-#### 3、在主module中引入lib库（参考下方配置：仅`hookMethodEnterMap`、`hookMethodInvokeMap`需要配置此项，方便打印堆栈,其他配置项可忽略此配置）
+#### 3、在主module中引入lib库
+参考下方配置：仅`hookMethodEnterMap`、`hookMethodInvokeMap`需要配置此项，方便打印堆栈,其他配置项可忽略此配置
 ```
 dependencies {
     implementation 'com.gamehelper.android:method_call_record_lib:1.0.0-SNAPSHOT'
 }
 ```
 #### 4、在主module中注册插件，并添加配置信息
-##### 引入插件
+##### 4.1 引入插件
 ```
 apply plugin: 'com.gamehelper.method_call_record_plugin'
 ```
-##### 根据自己的配置可以添加如下介绍的配置项
+##### 4.2 根据自己的配置可以添加如下介绍的配置项
 
 
 ```
@@ -66,9 +73,10 @@ methodCallRecordExtension {
 }
 ```
 
-##### 现有支持的配置项
+##### 4.3 根据需要添加具体配置项
+默认不插桩，需要根据需要，选择是否添加下方的配置项。
 
-###### 方法体插桩：`hookMethodEnterMap`
+###### 4.3.1 `hookMethodEnterMap`：方法体插桩
 方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）
 首先区分一下`方法体`和`方法调用`
 ```
@@ -127,6 +135,7 @@ hookMethodEnterMap = ["android/view/View\$OnClickListener": ["onClick(Landroid/v
 
 ```
 然后我们就可以看到日志打印了
+
 ![img_1.png](doc/img_1.png)
   
 我们可以通过这个配置项hook 所有常见的点击事件，从而可以快速找到想要点击的位置,提高开发效率：
@@ -167,7 +176,7 @@ hookMethodEnterMap = ["android/view/View\$OnClickListener": ["onClick(Landroid/v
 ```
 
 
-###### `hookMethodInvokeMap`：方法调用插桩
+###### 4.3.2 `hookMethodInvokeMap`：方法调用插桩
 精准匹配（用于监控方法调用情况（比如敏感函数的调用位置），因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
 例如：
 ```
@@ -203,7 +212,7 @@ hookMethodEnterMap = ["android/view/View\$OnClickListener": ["onClick(Landroid/v
 ```
 需要打印堆栈的话，参考上方`hookMethodEnterMap`回调配置。
 
-###### `replaceMethodInvokeMap`：替换方法调用
+###### 4.3.3 `replaceMethodInvokeMap`：替换方法调用
 用于直接替换调用的方法，从而实现更多自定义配置（支持静态和实例方法）（注意要自行实现替换的方法，可参考工程中的ReplaceInvokeMethodApi实现）
 
 例如我们想把敏感函数的调用替换成我们自己的方法实现，我们可以这么配置
@@ -340,7 +349,7 @@ public static String getPhoneNumber(Context context) {
     return ReplaceInvokeMethodApi.getPhoneNumberImpl(telephonyManager);
 }
 ```
-###### `replaceFieldInvokeMap`：变量引用替换为方法引用
+###### 4.3.4 `replaceFieldInvokeMap`：变量引用替换为方法引用
 有些成员变量也属于敏感字段，我们可以通过这个配置项把敏感字段的引用变成方法引用，从而可以控制加载频率或者内容。
 例如：
 ```
@@ -396,7 +405,7 @@ String myTestField = ReplaceFieldApi.getMyTestField(new MyTest());
 
 
 
-###### `methodTest`：日志打印测试（含方法调用和方法体进入）
+###### 4.3.5 `methodTest`：日志打印测试（含方法调用和方法体进入）
 上面的填写内容，都是字节码理解的角度填写的，如果不知道怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
 例如:我们想知道`getDeviceId`的一些信息
 ```
@@ -415,11 +424,11 @@ signature（方法泛型信息：）:null
 className（当前扫描的类名）:com/canzhang/asmdemo/MainActivity
 ```
 
-###### `fieldTest`：日志打印测试（字段引用处）
+###### 4.3.6 `fieldTest`：日志打印测试（字段引用处）
 可以快速打印当前字段的归属类，字段名、字段描述信息，方便填写配置
 
 
-###### `ignorePath`：配置忽略插桩的模块
+###### 4.3.7 `ignorePath`：配置忽略插桩的模块
 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
 例如：
 ```
