@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
@@ -12,6 +13,8 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.canzhang.asmdemo.sdk.MyTest;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -36,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        String brand = Build.BRAND;
+        String myTestField = new MyTest().myTestField;
 
         findViewById(R.id.bt_test0).setOnClickListener(v -> {
             Toast.makeText(MainActivity.this, "哈哈0", Toast.LENGTH_SHORT).show();
@@ -140,13 +144,15 @@ public class MainActivity extends AppCompatActivity {
         return ip;
     }
 
+    static String s = "android_id";
 
+    static String wwww = "xxx";
     //Android_ID
     public static String getOrigAndroidID(Context context) {
-
-        String aid = "";
+        wwww = "666";
+        String aid = wwww;
         try {
-            aid = Settings.Secure.getString(context.getContentResolver(), "android_id");
+            aid = Settings.Secure.getString(context.getContentResolver(), s);
             //方案2
             aid = Settings.System.getString(context.getContentResolver(), "android_id");
         } catch (Throwable e) {

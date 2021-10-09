@@ -12,6 +12,10 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+/**
+ * 替换方法实现范例
+ * 需要注意全部使用的是静态方法进行实现的，另外如果调用的方法是实例方法，需要把实例传入进来，有参数也需要把参数进行传入
+ */
 public class ReplaceInvokeMethodApi {
 
     @SuppressLint("MissingPermission")

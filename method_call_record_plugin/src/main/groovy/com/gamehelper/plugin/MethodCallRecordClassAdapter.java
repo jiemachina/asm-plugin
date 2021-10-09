@@ -116,17 +116,42 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
             @Override
             public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-//                if("com/canzhang/asmdemo/sdk/MyTest".equals(className)){
-//                    LogUtils.log("--------------->>>>>\n\nopcode(操作码):" + opcode + "\n\nowner:" + owner + "\n\nname（:" + name + "\n\ndesc:" + desc + "\n\noutMethodName（上层类名_方法名）:" +className+"_"+ outName);
-//                }
-//                if (opcode == Opcodes.GETSTATIC && "android/os/Build".equals(owner)) {
-//                    //加载一个常量
-//                    mv.visitLdcInsn(className + "_" + outName + "_load: fieldName:" + name + " fieldDesc:" + desc + " fieldOwner:" + owner);
-//                    //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
-//                    mv.visitMethodInsn(INVOKESTATIC, sdkClassPath, "recordLoadFiled", "(Ljava/lang/String;)V", false);
-//                }
-                super.visitFieldInsn(opcode, owner, name, desc);
+                if (MethodCallRecordExtension.fieldTest != null && MethodCallRecordExtension.fieldTest.contains(name)) {
+                    LogUtils.log("--------------->>>>>\n\n变量访问 opcode(操作码):" + opcode
+                            + "\nowner（变量归属类）:" + owner
+                            + "\nname（变量名）:" + name
+                            + "\ndesc（变量描述）:" + desc
+                            + "\noutMethodName（引用处类名_方法名）:" + className + "_" + outName);
+                }
 
+                if (MethodCallRecordExtension.replaceFieldInvokeMap != null) {
+                    String key = owner + "." + name + "." + desc;
+                    if (MethodCallRecordExtension.replaceFieldInvokeMap.containsKey(key)) {
+                        List<String> list = MethodCallRecordExtension.replaceFieldInvokeMap.get(key);
+                        if (list != null && list.size() == 3) {
+                            String classOwner = list.get(0);
+                            String methodName = list.get(1);
+                            String methodDesc = list.get(2);
+
+                            //安全处理：避免同一个类替换，防止陷入死循环，另外也可以通过配置 MethodCallRecordExtension.ignorePath 来主动过滤（这里这么写主要是防止用户忘记配置ignorePath的情况）
+                            if (className.equals(classOwner)) {
+                                LogUtils.loge("\n\n\n\n-----提醒----返回安全处理：字段替换禁止同一个类的变量引用替换，避免陷入死循环-->>>>>"
+                                        + "\n当前扫描类：" + className
+                                        + "\n替换方法：" + classOwner + "." + methodName + methodDesc);
+                            } else if (!TextUtils.isEmpty(classOwner) && !TextUtils.isEmpty(methodName) && !TextUtils.isEmpty(methodDesc)) {
+                                LogUtils.log("\n\n\n\n----------visitMethodInsn 开始替换变量调用-->>>>>"
+                                        + "\n当前命中:" + key
+                                        + "\n替换成:" + classOwner + "." + methodName + methodDesc);
+                                //把变量访问修改为调用方法
+                                visitMethodInsn(Opcodes.INVOKESTATIC, classOwner, methodName, methodDesc, false);
+                                //返回，不再插入访问变量指令
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                super.visitFieldInsn(opcode, owner, name, desc);
 
             }
 

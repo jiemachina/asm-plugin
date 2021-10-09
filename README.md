@@ -2,7 +2,7 @@
 本项目主要是一些基于asm实现的字节码操作插件，目前有如下插件：
 ## 方法调用检测插件
 ### 功能
-提供方法调用检测能力，能快速知道方法调用的位置，协助定位问题，或者提高工作效率。
+提供方法调用检测及替换能力，能快速知道方法调用的位置或者直接替换方法实现，协助定位解决问题，或者提高工作效率。
 
 ### 应用场景举例
 
@@ -26,7 +26,6 @@ android 隐私权限相关的api或者字段要求越来越严格，我们需要
 * 子父类各种方法复写
 * ...
 
-
 针对上面的场景我们就可以使用方法调用监控来快速找到调用的位置或者替换调用的方法。
 
 ### 涉及module
@@ -36,29 +35,37 @@ android 隐私权限相关的api或者字段要求越来越严格，我们需要
 
 ### 使用方式
 
-* 1、添加仓库
+#### 1、添加仓库
 ```
 maven {url 'https://mirrors.tencent.com/repository/maven/tencent_public/'}
 ```
-* 2、在工程gradle中引入插件库
+#### 2、在工程gradle中引入插件库
 ```
 dependencies {
-    classpath 'com.gamehelper.android:method_call_plugin:1.0.3-SNAPSHOT'
+    classpath 'com.gamehelper.android:method_call_plugin:1.0.4-SNAPSHOT'
 }
 ```
-* 3、在主module中引入lib库
+#### 3、在主module中引入lib库
 ```
 dependencies {
     implementation 'com.gamehelper.android:method_call_record_lib:1.0.0-SNAPSHOT'
 }
 ```
-* 4、在主module中注册插件，并添加配置信息
+#### 4、在主module中注册插件，并添加配置信息
+##### 引入插件
+```
+apply plugin: 'com.gamehelper.method_call_record_plugin'
+```
+##### 根据自己的配置可以添加如下介绍的配置项
+
 几个`gradle`配置项
   * `methodTest`：日志打印测试，不知道方法描述怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
   * `hookMethodEnterMap`:方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）
   * `hookMethodInvokeMap`：方法调用插桩：精准匹配（用于监控方法调用情况，因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
   * `ignorePath`：配置忽略插桩的模块 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
   * `replaceMethodInvokeMap`：替换方法调用（注意要自行实现替换的方法，可参考工程中的ReplaceInvokeMethodApi实现）
+  * `fieldTest`：可以快速打印当前字段的归属类，字段名、字段描述信息，方便填写配置
+  * `replaceFieldInvokeMap`：通过此项可以配置把变量引用替换为方法引用。
 ```
 apply plugin: 'com.gamehelper.method_call_record_plugin'
 methodCallRecordExtension {
@@ -223,7 +230,21 @@ https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-
 
 
 ## 升级日志
-### 1.0.2-SNAPSHOT (2021-09-17)
+### 1.0.4-SNAPSHOT (2021-09-17)
+#### Features
+* 支持把变量引用变为方法引用，例如：
+```
+ //静态变量示例：原代码：
+ String brand = Build.BRAND;
+ //可以变为：
+ String brand = ReplaceFieldApi.getBrand();
+ 
+  //实例变量示例：原代码：
+ String myTestField = new MyTest().myTestField;
+ //可以变为：
+ String myTestField = ReplaceFieldApi.getMyTestField(new MyTest());
+```
+### 1.0.3-SNAPSHOT (2021-09-17)
 #### Features
 * 插入行号，方便方法体插入的配置，堆栈能够快速定位到行号。
 
@@ -246,7 +267,8 @@ D/MethodRecordSDK: com.canzhang.MyActivity$7.onClick(MyActivity.java:485)
 说明：为了简单，我们针对方法体插桩，都是在方法进入时机插入的（这样不用考虑返回和异常等分支逻辑处理），
 而方法进入那一刻还没有扫描到方法体内的行号，本次插入的行号，所以我们本次为了简单插入的是上一指令的行号，
 也就是`hook方法`的上一条指令的行号（我们只是想快速找到调用位置，所以已经能满足我们的需求）
-### 1.0.3-SNAPSHOT (2021-09-10)
+
+### 1.0.2-SNAPSHOT (2021-09-10)
 #### Features
 * 新增方法调用替换能力
 应用于替换方法调用实现，比如`getDeviceId`方法我们可以在调用处替换成自己的实现。
