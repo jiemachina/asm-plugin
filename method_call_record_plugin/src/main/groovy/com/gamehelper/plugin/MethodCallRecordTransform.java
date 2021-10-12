@@ -29,7 +29,11 @@ public class MethodCallRecordTransform extends HunterTransform {
 
     @Override
     public void transform(Context context, Collection<TransformInput> inputs, Collection<TransformInput> referencedInputs, TransformOutputProvider outputProvider, boolean isIncremental) throws IOException, TransformException, InterruptedException {
+        WriteLogUtils.deleteHistoryLog();
+        long startTime = System.currentTimeMillis();
         super.transform(context, inputs, referencedInputs, outputProvider, isIncremental);
+        LogUtils.log("\n\n\n\n方法检测插件：" + getName() + " 总耗时： " + (System.currentTimeMillis() - startTime) + "ms");
+        WriteLogUtils.releaseIO();
     }
 
 }

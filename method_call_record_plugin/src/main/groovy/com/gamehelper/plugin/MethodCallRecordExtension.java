@@ -59,4 +59,9 @@ public class MethodCallRecordExtension {
      * 不需要插桩的路径，可以传递全路径，也可以传递父级文件夹  例如 ：com/canzhang/asmdemo/sdk/MySdk
      */
     public static List<String> ignorePath = new ArrayList<>();
+
+    /**
+     * 是否需要把log 写到本地，如果是true，则会在工程根目录生成 method_call_plugin_hook_log.txt  方便查看日志
+     */
+    public static boolean isNeedWriteLogToLocal = false;
 }

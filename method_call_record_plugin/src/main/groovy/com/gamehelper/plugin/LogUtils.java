@@ -13,10 +13,12 @@ public class LogUtils {
 
     static synchronized void log(String str) {
         System.out.println(str);
+        WriteLogUtils.writeLogToLocal(str);
     }
 
     static synchronized void loge(String str) {
         System.out.println(ANSI_RED + str + ANSI_RESET);
+        WriteLogUtils.writeLogToLocal(str);
     }
 
 

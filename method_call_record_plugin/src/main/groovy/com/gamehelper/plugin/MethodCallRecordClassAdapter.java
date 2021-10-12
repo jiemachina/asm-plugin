@@ -273,9 +273,9 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                             return false;
                         }
                         if (!TextUtils.isEmpty(replaceClassOwner) && !TextUtils.isEmpty(replaceMethodName) && !TextUtils.isEmpty(replaceMethodDesc)) {
-//                            LogUtils.log("\n\n\n\n----------visitMethodInsn 开始替换方法调用-->>>>>"
-//                                    + "\n当前命中:" + replaceInvokeMethodKey
-//                                    + "\n替换成:" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
+                            LogUtils.log("\n\n\n\n----------replaceInvokeMethod 开始替换方法调用-->>>>>"
+                                    + "\n当前命中:" + replaceInvokeMethodKey
+                                    + "\n替换成:" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
                             super.visitMethodInsn(Opcodes.INVOKESTATIC, replaceClassOwner, replaceMethodName, replaceMethodDesc, false);
                             return true;
                         }
@@ -318,7 +318,9 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                     if (methodList != null && methodList.contains(methodNameAndDesc)) {
                         //命中插桩
                         if (methodNameAndDesc != null) {
-                            //LogUtils.log("----------命中----->>>"+className + "_" + outName + "_call:" + recordMethodName);
+                            LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>"
+                                    + "\n引用处类名_方法名：" + className + "_" + outName
+                                    + "\n调用的方法归属类_方法:" + key +"_"+methodNameAndDesc);
                             //加载一个常量(当前所在类、调用处的方法、被调用的方法)
                             //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
                             if (mLastLine != -1) {

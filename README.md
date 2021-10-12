@@ -443,6 +443,10 @@ name（变量名）:myTestField
 desc（变量描述）:Ljava/lang/String;
 outMethodName（引用处类名_方法名）:com/canzhang/asmdemo/MainActivity_onCreate
 ```
+###### 4.3.8 `isNeedWriteLogToLocal`：是否把日志输出到本地
+```
+isNeedWriteLogToLocal = true//默认关闭
+```
 #### 5、在主工程中的 `gradle.properties`配置开关
 ```
 #注意不要有空格,如果想关闭插件，则设置为false即可，默认为关闭状态
@@ -500,14 +504,17 @@ android.enableD8.desugaring=false
 
 
 ## 升级日志
-### 1.0.5-SNAPSHOT (2021-09-17)
+### 1.0.6-SNAPSHOT (2021-10-12)
+#### Features
+* 新增插桩日志写到本地，方便查看日志 ，开关`isNeedWriteLogToLocal`
+### 1.0.5-SNAPSHOT (2021-10-12)
 #### bug fix
 * 修复部分项目编译报错问题
 ```
 {com.android.dx.cf.code.SimException} stack: overflow
 ```
 修改方案参考自：[matrix](https://github.com/Tencent/matrix/pull/201)
-### 1.0.4-SNAPSHOT (2021-09-17)
+### 1.0.4-SNAPSHOT (2021-10-09)
 #### Features
 * 支持把变量引用变为方法引用，例如：
 ```
