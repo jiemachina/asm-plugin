@@ -48,7 +48,7 @@ maven {url 'https://mirrors.tencent.com/repository/maven/tencent_public/'}
 #### 2、在工程gradle中引入插件库
 ```
 dependencies {
-    classpath 'com.gamehelper.android:method_call_plugin:1.0.4-SNAPSHOT'
+    classpath 'com.gamehelper.android:method_call_plugin:1.0.5-SNAPSHOT'
 }
 ```
 #### 3、在主module中引入lib库
@@ -494,12 +494,19 @@ android.enableD8.desugaring=false
 ```
 当然也是可以在通过某些手段直接支持脱糖hook的，具体可参考以下文章：
 **lambda 脱糖流程参考**
-https://opensource.sensorsdata.cn/opensource/lambda-%e8%ae%be%e8%ae%a1%e5%8f%82%e8%80%83/
-https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-%e5%92%8c%e6%96%b9%e6%b3%95%e5%bc%95%e7%94%a8-%e6%95%b0%e6%8d%ae%e9%87%87%e9%9b%86/
+[Lambda 设计参考](https://opensource.sensorsdata.cn/opensource/lambda-%e8%ae%be%e8%ae%a1%e5%8f%82%e8%80%83/)
+[ASM 实现 Hook Lambda 和方法引用 | 数据采集](https://opensource.sensorsdata.cn/opensource/asm-%e5%ae%9e%e7%8e%b0-hook-lambda-%e5%92%8c%e6%96%b9%e6%b3%95%e5%bc%95%e7%94%a8-%e6%95%b0%e6%8d%ae%e9%87%87%e9%9b%86/)
 
 
 
 ## 升级日志
+### 1.0.5-SNAPSHOT (2021-09-17)
+#### bug fix
+* 修复部分项目编译报错问题
+```
+{com.android.dx.cf.code.SimException} stack: overflow
+```
+修改方案参考自：[matrix](https://github.com/Tencent/matrix/pull/201)
 ### 1.0.4-SNAPSHOT (2021-09-17)
 #### Features
 * 支持把变量引用变为方法引用，例如：

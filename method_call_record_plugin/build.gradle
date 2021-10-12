@@ -16,7 +16,7 @@ dependencies {
     implementation 'com.quinn.hunter:hunter-transform:1.0.0'
 }
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 //调试模式下在本地生成仓库（也可推入自己已有的maven仓库）
@@ -45,6 +45,6 @@ uploadArchives {
         pom.artifactId = 'method_call_plugin'
 
         //插件版本号
-        pom.version = '1.0.4-SNAPSHOT'
+        pom.version = '1.0.5-SNAPSHOT'
     }
 }

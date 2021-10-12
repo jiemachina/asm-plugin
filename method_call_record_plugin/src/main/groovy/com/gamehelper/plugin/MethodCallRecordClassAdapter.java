@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     private String className;
-    private String sdkClassPath = "com/gamehelper/method_call_record_lib/MethodRecordSDK";
+    private final String sdkClassPath = "com/gamehelper/method_call_record_lib/MethodRecordSDK";
     private String[] mInterfaces;//当前所扫描的类实现的接口
     int mLastLine = -1;
 
