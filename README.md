@@ -579,7 +579,7 @@ popupWindowView.setOnClickListener(new View.OnClickListener() {//实际指向位
 如果同一个版本发布(SNAPSHOT后缀的)，android studio 未更新，可以执行如下命令进行更新，避免频繁升级：
 ./gradlew clean --refresh-dependencies
 
-### 参考文章
+
 
 
 
