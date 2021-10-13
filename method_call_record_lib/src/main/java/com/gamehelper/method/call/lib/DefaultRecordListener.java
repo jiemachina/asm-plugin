@@ -1,18 +1,17 @@
-package com.gamehelper.method_call_record_lib;
+package com.gamehelper.method.call.lib;
 
 import android.util.Log;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultRecordListener implements RecordCallListener {
-    private static AtomicInteger methodCallNum =new AtomicInteger(0) ;//可能涉及多个进程 累加就好
-    private static AtomicInteger filedCallNum =new AtomicInteger(0) ;
+    private static AtomicInteger methodCallNum = new AtomicInteger(0);//可能涉及多个进程 累加就好
+
     @Override
     public void onRecordMethodCall(String from) {
         Log.e("MethodRecordSDK", "调用的方法是：" + from);
-        printStackTrace("函数:"+methodCallNum.addAndGet(1));
+        printStackTrace("函数:" + methodCallNum.addAndGet(1));
     }
-
 
 
     private synchronized static void printStackTrace(String tips) {

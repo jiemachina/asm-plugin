@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven'
-
+apply from: "${rootDir}/install_pre_commit.gradle"
 
 android {
     compileSdkVersion 30

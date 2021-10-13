@@ -1,7 +1,4 @@
-package com.gamehelper.method_call_record_lib;
-
-import android.content.ContentResolver;
-import android.provider.Settings;
+package com.gamehelper.method.call.lib;
 
 /**
  * 监控sdk
