@@ -26,8 +26,8 @@ public class ReplaceFieldApi {
      * @return
      */
     public static String getBrand() {
-        if(sBrand==null){
-            return sBrand=Build.BRAND;
+        if (sBrand == null) {
+            return sBrand = Build.BRAND;
         }
         return sBrand;
 

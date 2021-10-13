@@ -22,6 +22,7 @@ public class ReplaceInvokeMethodApi {
      * @return
      */
     public static String getStringImpl(ContentResolver resolver, String name) {
+        //getString 有两个方法实现，归属不同类，注意调整
         Log.e("MethodRecordSDK", "敏感函数 getStringImpl 方法被调用了");
         return "我是测试数据 from  getStringImpl";
     }

@@ -16,9 +16,16 @@ public class MainTest {
     }
 
 
-
     public static String test02(String s) {
-        return "hahah"+s;
+        return "hahah" + s;
+    }
+
+
+    public  int calc() {
+        int a = 100;
+        int b = 2;
+        int c = 3000;
+        return (a + b) * c;
     }
 
 }

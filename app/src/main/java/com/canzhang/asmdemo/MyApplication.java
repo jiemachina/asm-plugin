@@ -2,8 +2,8 @@ package com.canzhang.asmdemo;
 
 import android.app.Application;
 
-import com.gamehelper.method_call_record_lib.MethodRecordSDK;
-import com.gamehelper.method_call_record_lib.RecordCallListener;
+import com.gamehelper.method.call.lib.MethodRecordSDK;
+import com.gamehelper.method.call.lib.RecordCallListener;
 
 
 public class MyApplication extends Application {
