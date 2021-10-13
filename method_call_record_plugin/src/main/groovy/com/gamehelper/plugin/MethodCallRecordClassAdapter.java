@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     private String className;
-    private final String sdkClassPath = "com/gamehelper/method_call_record_lib/MethodRecordSDK";
+    private final String sdkClassPath = "com/gamehelper/method/call/lib/MethodRecordSDK";
     private String[] mInterfaces;//当前所扫描的类实现的接口
     int mLastLine = -1;
 
@@ -320,7 +320,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                         if (methodNameAndDesc != null) {
                             LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>"
                                     + "\n引用处类名_方法名：" + className + "_" + outName
-                                    + "\n调用的方法归属类_方法:" + key +"_"+methodNameAndDesc);
+                                    + "\n调用的方法归属类_方法:" + key + "_" + methodNameAndDesc);
                             //加载一个常量(当前所在类、调用处的方法、被调用的方法)
                             //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
                             if (mLastLine != -1) {

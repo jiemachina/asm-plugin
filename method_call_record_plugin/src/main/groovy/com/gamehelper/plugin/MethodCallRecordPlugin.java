@@ -27,7 +27,8 @@ public class MethodCallRecordPlugin implements Plugin<Project> {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            usePlugin = Boolean.parseBoolean(properties.getProperty("isOpenMethodCallRecordPlugin", "false"));
+            usePlugin = Boolean.parseBoolean(properties.getProperty("isOpenMethodCallRecordPlugin",
+                    "false"));
         }
 
         if (appExtension != null && usePlugin) {

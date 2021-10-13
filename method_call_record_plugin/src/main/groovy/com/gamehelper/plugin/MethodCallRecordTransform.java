@@ -28,7 +28,9 @@ public class MethodCallRecordTransform extends HunterTransform {
 
 
     @Override
-    public void transform(Context context, Collection<TransformInput> inputs, Collection<TransformInput> referencedInputs, TransformOutputProvider outputProvider, boolean isIncremental) throws IOException, TransformException, InterruptedException {
+    public void transform(Context context, Collection<TransformInput> inputs,
+                          Collection<TransformInput> referencedInputs, TransformOutputProvider outputProvider,
+                          boolean isIncremental) throws IOException, TransformException, InterruptedException {
         WriteLogUtils.deleteHistoryLog();
         long startTime = System.currentTimeMillis();
         super.transform(context, inputs, referencedInputs, outputProvider, isIncremental);

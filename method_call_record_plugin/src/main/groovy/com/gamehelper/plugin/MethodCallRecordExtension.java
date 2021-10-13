@@ -28,6 +28,7 @@ public class MethodCallRecordExtension {
 
     /**
      * 替换变量调用
+     *
      * @ key : 需要替换的 变量归属类+"."+变量名+"."+变量类型描述   如：android/os/Build.BRAND.Ljava/lang/String;
      * @ list item value : 替换成  index0=类名，如：com/canzhang/asmdemo/sdk/ReplaceFieldApi；  index1=获取方法名，如：getBrand；  index2=方法描述符，如：  ()V; ； 严格按照顺序填入
      */

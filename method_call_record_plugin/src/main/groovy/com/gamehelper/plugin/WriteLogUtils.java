@@ -15,7 +15,7 @@ public class WriteLogUtils {
 
 
     public static void writeLogToLocal(String log) {
-        if(!MethodCallRecordExtension.isNeedWriteLogToLocal){
+        if (!MethodCallRecordExtension.isNeedWriteLogToLocal) {
             return;
         }
         if (TextUtils.isEmpty(log)) {
