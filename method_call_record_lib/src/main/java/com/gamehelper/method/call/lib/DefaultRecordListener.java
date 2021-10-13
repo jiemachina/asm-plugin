@@ -14,7 +14,7 @@ public class DefaultRecordListener implements RecordCallListener {
     }
 
 
-    private synchronized static void printStackTrace(String tips) {
+    private static synchronized void printStackTrace(String tips) {
         Log.e("MethodRecordSDK", String.format("\n\n----------------------%s调用堆栈开始------------------------\n\n", tips));
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         for (int i = 0; i < stackTraceElements.length; i++) {

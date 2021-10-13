@@ -14,13 +14,14 @@ public class MethodRecordSDK {
      *
      * @param from
      */
-    public synchronized static void recordMethodCall(String from) {
+    public static synchronized void recordMethodCall(String from) {
         recordCallListener.onRecordMethodCall(from);
     }
 
 
     /**
      * 设置回调
+     *
      * @param recordCallListener
      */
     public static void setRecordCallListener(RecordCallListener recordCallListener) {
