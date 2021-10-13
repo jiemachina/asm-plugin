@@ -74,6 +74,13 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
         final AtomicBoolean isInvokeLoadLibrary = new AtomicBoolean(false);
         List<String> mLdcList = new ArrayList<>();
 
+        mv = getMethodVisitor(access, outName, desc, signature, mv, isInvokeLoadLibrary, mLdcList);
+        return mv;
+
+    }
+
+    private MethodVisitor getMethodVisitor(int access, String outName, String desc, String signature,
+                                           MethodVisitor mv, AtomicBoolean isInvokeLoadLibrary, List<String> mLdcList) {
         mv = new AdviceAdapter(ASM6, mv, access, outName, desc) {
 
 
@@ -296,9 +303,8 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                 if (map != null && map.size() > 0) {
 
                     String methodNameAndDesc = name + descriptor;
-                    /**
-                     * 下面三个是并集，如果填入重复（比如空值key填入的方法和下面两个有重复的情况），则会多次插入
-                     */
+
+                    //下面三个是并集，如果填入重复（比如空值key填入的方法和下面两个有重复的情况），则会多次插入
                     //仅方法匹配，不关心方法归属类或者实现接口
                     hook(map, methodNameAndDesc, "");
                     //匹配方法实现类
@@ -349,7 +355,6 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
         };
         return mv;
-
     }
 
     private boolean isSdkPath() {

@@ -45,13 +45,11 @@ public class MethodCallRecordExtension {
 
     /**
      * 不知类的路径，和方法描述怎么写，可以在这里添加方法名，然后build一下会自动打印出来（无论是方法调用，还是方法体进入，这里都会打印，以保证监控到所有情况，可能会重复打印）
-     * <p>
      * item value: 方法名：如 getLine1Number8
      */
     public static List<String> methodTest = new ArrayList<>();
     /**
      * 不知变量归属类，变量描述怎么写，可以在这里添加变量名，然后build一下会自动打印出来
-     * <p>
      * item value: 变量名：如 BRAND
      */
     public static List<String> fieldTest = new ArrayList<>();

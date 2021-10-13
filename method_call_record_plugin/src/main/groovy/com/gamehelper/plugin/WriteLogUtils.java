@@ -8,13 +8,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * 把日志写到本地
+ */
 public class WriteLogUtils {
     public static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
+    //文件名
     private static final File desFile = new File("method_call_plugin_hook_log.txt");
     private static BufferedWriter bw;
 
 
     public static void writeLogToLocal(String log) {
+        //是否写到本地
         if (!MethodCallRecordExtension.isNeedWriteLogToLocal) {
             return;
         }
