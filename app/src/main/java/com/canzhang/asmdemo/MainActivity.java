@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
             Object o = new Object();
             o.toString();
         } catch (UnsatisfiedLinkError e) {
-
+            e.printStackTrace();
         }
     }
 
@@ -123,6 +123,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * 获取ip
+     * @return
+     */
     public static String getLocalIpAddress() {
         String ip = "127.0.0.1";
         try {

@@ -18,6 +18,11 @@ public class WriteLogUtils {
     private static BufferedWriter bw;
 
 
+    /**
+     * 日志写到本地
+     *
+     * @param log 具体内容
+     */
     public static void writeLogToLocal(String log) {
         //是否写到本地
         if (!MethodCallRecordExtension.isNeedWriteLogToLocal) {
