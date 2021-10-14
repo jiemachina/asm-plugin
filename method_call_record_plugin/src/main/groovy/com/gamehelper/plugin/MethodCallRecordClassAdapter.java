@@ -1,13 +1,13 @@
 package com.gamehelper.plugin;
 
 import static org.objectweb.asm.Opcodes.ASM6;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import org.apache.http.util.TextUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
-    private String className;
+    private String currentScanClass;
     private final String sdkClassPath = "com/gamehelper/method/call/lib/MethodRecordSDK";
     private String[] mInterfaces;//当前所扫描的类实现的接口
     int mLastLine = -1;
@@ -41,8 +41,9 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
      * @param interfaces 当前类实现的接口列表
      */
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        this.className = name;
+    public void visit(int version, int access, String name,
+                      String signature, String superName, String[] interfaces) {
+        this.currentScanClass = name;
         mInterfaces = interfaces;
         super.visit(version, access, name, signature, superName, interfaces);
     }
@@ -57,31 +58,31 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
     /**
      * 这里可以拿到关于method的所有信息，比如方法名，方法的参数描述等
      *
-     * @param access     方法的修饰符
-     * @param outName    方法名
-     * @param desc       方法描述（就是（参数列表）返回值类型拼接）
-     * @param signature  泛型相关信息
-     * @param exceptions 方法抛出的异常信息
+     * @param access                方法的修饰符
+     * @param currentScanMethodName 方法名
+     * @param desc                  方法描述（就是（参数列表）返回值类型拼接）
+     * @param signature             泛型相关信息
+     * @param exceptions            方法抛出的异常信息
      * @return
      */
     @Override
-    public MethodVisitor visitMethod(final int access, final String outName,
+    public MethodVisitor visitMethod(final int access, final String currentScanMethodName,
                                      final String desc, final String signature, final String[] exceptions) {
-        MethodVisitor mv = super.visitMethod(access, outName, desc, signature, exceptions);
+        MethodVisitor mv = super.visitMethod(access, currentScanMethodName, desc, signature, exceptions);
         if (isSdkPath()) {
             return mv;
         }
         final AtomicBoolean isInvokeLoadLibrary = new AtomicBoolean(false);
         List<String> mLdcList = new ArrayList<>();
 
-        mv = getMethodVisitor(access, outName, desc, signature, mv, isInvokeLoadLibrary, mLdcList);
+        mv = getMethodVisitor(access, currentScanMethodName, desc, signature, mv, isInvokeLoadLibrary, mLdcList);
         return mv;
 
     }
 
-    private MethodVisitor getMethodVisitor(int access, String outName, String desc, String signature,
+    private MethodVisitor getMethodVisitor(int access, String currentScanMethodName, String desc, String signature,
                                            MethodVisitor mv, AtomicBoolean isInvokeLoadLibrary, List<String> mLdcList) {
-        mv = new AdviceAdapter(ASM6, mv, access, outName, desc) {
+        mv = new AdviceAdapter(ASM6, mv, access, currentScanMethodName, desc) {
 
 
             /**
@@ -136,50 +137,14 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
             @Override
             public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-                if (MethodCallRecordExtension.fieldTest != null && MethodCallRecordExtension.fieldTest.contains(name)) {
-                    LogUtils.log("\n\n\n\n----------测试打印数据---form 变量引用 -->>>>>"
-                            + "\nopcode(要访问的类型指令的操作码):" + opcode
-                            + "\nowner（变量归属类）:" + owner
-                            + "\nname（变量名）:" + name
-                            + "\ndesc（变量描述）:" + desc
-                            + "\noutMethodName（引用处类名_方法名）:" + className + "_" + outName);
-                }
-
-                if (MethodCallRecordExtension.replaceFieldInvokeMap != null) {
-                    String key = owner + "." + name + "." + desc;
-                    if (MethodCallRecordExtension.replaceFieldInvokeMap.containsKey(key)) {
-                        List<String> list = MethodCallRecordExtension.replaceFieldInvokeMap.get(key);
-                        if (list != null && list.size() == 3) {
-                            String classOwner = list.get(0);
-                            String methodName = list.get(1);
-                            String methodDesc = list.get(2);
-
-                            //安全处理：避免同一个类替换，防止陷入死循环，
-                            //另外也可以通过配置 MethodCallRecordExtension.ignorePath
-                            //来主动过滤（这里这么写主要是防止用户忘记配置ignorePath的情况）
-                            if (className.equals(classOwner)) {
-                                LogUtils.loge("\n\n\n\n-----提醒----返回安全处理：字段替换禁止同一个类的变量引用替换，避免陷入死循环-->>>>>"
-                                        + "\n当前扫描类：" + className
-                                        + "\n替换方法：" + classOwner + "." + methodName + methodDesc);
-                            } else if (!TextUtils.isEmpty(classOwner)
-                                    && !TextUtils.isEmpty(methodName)
-                                    && !TextUtils.isEmpty(methodDesc)) {
-                                LogUtils.log("\n\n\n\n----------开始替换变量引用为方法引用-->>>>>"
-                                        + "\n当前命中:" + key
-                                        + "\n替换成:" + classOwner + "." + methodName + methodDesc
-                                        + "\noutMethodName（引用处类名_方法名）:" + className + "_" + outName);
-                                //把变量访问修改为调用方法
-                                visitMethodInsn(Opcodes.INVOKESTATIC, classOwner, methodName, methodDesc, false);
-                                //返回，不再插入访问变量指令
-                                return;
-                            }
-                        }
-                    }
+                if (invokeVisitFieldInsn(this, opcode, owner, name, desc, currentScanMethodName)) {
+                    return;
                 }
 
                 super.visitFieldInsn(opcode, owner, name, desc);
 
             }
+
 
             @Override
             public void visitCode() {
@@ -204,15 +169,16 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                 super.onMethodEnter();
                 //打印方法信息
                 if (MethodCallRecordExtension.methodTest != null
-                        && MethodCallRecordExtension.methodTest.contains(outName)) {
+                        && MethodCallRecordExtension.methodTest.contains(currentScanMethodName)) {
                     LogUtils.log("\n\n\n\n----------测试打印数据---form 方法进入 -->>>>>"
                             + "\naccess（方法修饰符）:" + access
-                            + "\noutName（方法名）:" + outName
+                            + "\ncurrentScanMethodName（方法名）:" + currentScanMethodName
                             + "\ndesc（方法描述（就是（参数列表）返回值类型拼接））:" + desc
                             + "\nsignature（方法泛型信息：）:" + signature
-                            + "\nclassName（当前扫描的类名）:" + className);
+                            + "\nclassName（当前扫描的类名）:" + currentScanClass);
                 }
-                hookMethod(className, outName, desc, MethodCallRecordExtension.hookMethodEnterMap);
+                hookMethod(mv, currentScanMethodName, currentScanClass, currentScanMethodName,
+                        desc, MethodCallRecordExtension.hookMethodEnterMap);
             }
 
 
@@ -232,7 +198,8 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
             }
 
             /**
-             * 访问调用方法的指令（这里仅针对调用方法的指令，其他指令还有返回指令，异常抛出指令一类的） 像接口回调这一类的是调用不到的（因为回调的点是系统api，这里捕获不到）
+             * 访问调用方法的指令（这里仅针对调用方法的指令，其他指令还有返回指令，异常抛出指令一类的）
+             * 像接口回调这一类的是调用不到的（因为回调的点是系统api，这里捕获不到）
              * @param opcode 指令
              * @param owner  指令所调用的方法归属的类
              * @param name   方法名
@@ -242,144 +209,17 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                 //打印方法调用信息
-                printMethodInfo(opcode, owner, name, descriptor, isInterface);
+                printMethodInfo(opcode, owner, name, descriptor, isInterface, access, signature,
+                        currentScanClass, isInvokeLoadLibrary);
                 //方法调用处插桩（不影响原有运行逻辑）
-                hookMethod(owner, name, descriptor, MethodCallRecordExtension.hookMethodInvokeMap);
+                hookMethod(mv, currentScanMethodName, owner, name, descriptor,
+                        MethodCallRecordExtension.hookMethodInvokeMap);
                 //替换方法调用（替换了原有方法调用，自行实现方法逻辑）
-                if (replaceInvokeMethod(owner, name, descriptor)) {
+                if (replaceInvokeMethod(this, owner, name, descriptor)) {
                     return;
                 }
                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 
-            }
-
-            /**
-             * 打印方法调用信息
-             */
-            private void printMethodInfo(int opcode, String owner, String name,
-                                         String descriptor, boolean isInterface) {
-                if (MethodCallRecordExtension.methodTest != null
-                        && MethodCallRecordExtension.methodTest.contains(name)) {
-                    LogUtils.log("\n\n\n\n----------测试打印数据---方法调用（与onMethodEnter 可能存在重复打印） -->>>>>"
-                            + "\nopcode（方法调用指令）:" + opcode
-                            + "\nowner（方法归属类）:" + owner
-                            + "\naccess（方法修饰符）:" + access
-                            + "\nname（方法名）:" + name
-                            + "\nisInterface（是否接口方法）:" + isInterface
-                            + "\ndescriptor（方法描述（就是（参数列表）返回值类型拼接））:" + descriptor
-                            + "\nsignature（方法泛型信息：）:" + signature
-                            + "\nclassName（当前扫描的类名）:" + className);
-
-                    //针对loadLibrary 的特别处理，因为我们想筛查load的是什么so，
-                    //一般我们写法会loadLibrary（"xxxx"）,我们把所有的字符串类型常量都打印出来，
-                    //协助我们筛查
-                    if ("java/lang/System".equals(owner)
-                            && "loadLibrary".equals(name)
-                            && "(Ljava/lang/String;)V".equals(descriptor)) {
-                        isInvokeLoadLibrary.set(true);
-                    }
-                }
-            }
-
-            /**
-             * 替换方法调用
-             * @return 是否命中替换
-             */
-            private boolean replaceInvokeMethod(String owner, String name, String descriptor) {
-                String replaceInvokeMethodKey = owner + "." + name + descriptor;
-                if (MethodCallRecordExtension.replaceMethodInvokeMap != null
-                        && MethodCallRecordExtension.replaceMethodInvokeMap.containsKey(replaceInvokeMethodKey)) {
-                    List<String> list = MethodCallRecordExtension.replaceMethodInvokeMap.get(replaceInvokeMethodKey);
-                    if (list != null && list.size() == 3) {
-                        String replaceClassOwner = list.get(0);
-                        String replaceMethodName = list.get(1);
-                        String replaceMethodDesc = list.get(2);
-
-
-                        //安全处理：避免同一个类替换，防止陷入死循环，
-                        //另外也可以通过配置 MethodCallRecordExtension.ignorePath
-                        //来主动过滤（这里这么写主要是防止用户忘记配置ignorePath的情况）
-                        if (className.equals(replaceClassOwner)) {
-                            LogUtils.loge("\n\n\n\n-----提醒----返回安全处理：方法替换禁止同一个类的方法替换，避免陷入死循环-->>>>>"
-                                    + "\n当前扫描类：" + className
-                                    + "\n替换方法：" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
-                            return false;
-                        }
-                        if (!TextUtils.isEmpty(replaceClassOwner)
-                                && !TextUtils.isEmpty(replaceMethodName)
-                                && !TextUtils.isEmpty(replaceMethodDesc)) {
-                            LogUtils.log("\n\n\n\n----------replaceInvokeMethod 开始替换方法调用-->>>>>"
-                                    + "\n当前命中:" + replaceInvokeMethodKey
-                                    + "\n替换成:" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
-                            super.visitMethodInsn(Opcodes.INVOKESTATIC, replaceClassOwner,
-                                    replaceMethodName, replaceMethodDesc, false);
-                            return true;
-                        }
-
-                    }
-                }
-                return false;
-            }
-
-            /**
-             * 匹配方法，进行插桩
-             * @param owner 方法实现或归属类
-             * @param name 方法名
-             * @param descriptor 方法描述符
-             * @param map 用户配置信息
-             */
-            private void hookMethod(String owner, String name, String descriptor, Map<String, List<String>> map) {
-                if (map != null && map.size() > 0) {
-
-                    String methodNameAndDesc = name + descriptor;
-
-                    //下面三个是并集，如果填入重复（比如空值key填入的方法和下面两个有重复的情况），则会多次插入
-                    //仅方法匹配，不关心方法归属类或者实现接口
-                    hook(map, methodNameAndDesc, "");
-                    //匹配方法实现类
-                    hook(map, methodNameAndDesc, owner);
-                    //匹配方法归属的接口
-                    for (String anInterface : mInterfaces) {
-                        if (hook(map, methodNameAndDesc, anInterface)) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            private boolean hook(Map<String, List<String>> map, String methodNameAndDesc, String key) {
-                if (map.containsKey(key)) {
-                    List<String> methodList = map.get(key);
-                    if (methodList != null && methodList.contains(methodNameAndDesc)) {
-                        //命中插桩
-                        if (methodNameAndDesc != null) {
-                            LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>"
-                                    + "\n引用处类名_方法名：" + className + "_" + outName
-                                    + "\n调用的方法归属类_方法:" + key + "_" + methodNameAndDesc);
-                            //加载一个常量(当前所在类、调用处的方法、被调用的方法)
-                            //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
-                            if (mLastLine != -1) {
-                                try {
-                                    //标签标示字节码的位置，用于指定紧随其后的指令
-                                    Label label = new Label();
-                                    mv.visitLabel(label);
-                                    mv.visitLineNumber(mLastLine, label);
-                                } catch (Exception e) {
-                                    LogUtils.loge("发生异常：" + e.getMessage() + " mLastLine：" + mLastLine);
-                                    e.printStackTrace();
-                                }
-
-                            }
-                            mv.visitLdcInsn(className + "." + outName + " call: " + methodNameAndDesc);
-                            //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
-                            mv.visitMethodInsn(INVOKESTATIC, sdkClassPath,
-                                    "recordMethodCall", "(Ljava/lang/String;)V", false);
-
-                        }
-                    }
-                    return true;
-                }
-                return false;
             }
 
 
@@ -387,13 +227,216 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
         return mv;
     }
 
+    /**
+     * 替换方法调用
+     *
+     * @return 是否命中替换
+     */
+    private boolean replaceInvokeMethod(MethodVisitor mv, String owner, String name, String descriptor) {
+        String replaceInvokeMethodKey = owner + "." + name + descriptor;
+        if (MethodCallRecordExtension.replaceMethodInvokeMap != null
+                && MethodCallRecordExtension.replaceMethodInvokeMap.containsKey(replaceInvokeMethodKey)) {
+            List<String> list = MethodCallRecordExtension.replaceMethodInvokeMap.get(replaceInvokeMethodKey);
+            if (list != null && list.size() == 3) {
+                String replaceClassOwner = list.get(0);
+                String replaceMethodName = list.get(1);
+                String replaceMethodDesc = list.get(2);
+
+
+                //安全处理：避免同一个类替换，防止陷入死循环，
+                //另外也可以通过配置 MethodCallRecordExtension.ignorePath
+                //来主动过滤（这里这么写主要是防止用户忘记配置ignorePath的情况）
+                if (currentScanClass.equals(replaceClassOwner)) {
+                    LogUtils.loge("\n\n\n\n-----提醒----返回安全处理：方法替换禁止同一个类的方法替换，避免陷入死循环-->>>>>"
+                            + "\n当前扫描类：" + currentScanClass
+                            + "\n替换方法：" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
+                    return false;
+                }
+                if (!TextUtils.isEmpty(replaceClassOwner)
+                        && !TextUtils.isEmpty(replaceMethodName)
+                        && !TextUtils.isEmpty(replaceMethodDesc)) {
+                    LogUtils.log("\n\n\n\n----------replaceInvokeMethod 开始替换方法调用-->>>>>"
+                            + "\n当前命中:" + replaceInvokeMethodKey
+                            + "\n替换成:" + replaceClassOwner + "." + replaceMethodName + replaceMethodDesc);
+                    mv.visitMethodInsn(INVOKESTATIC, replaceClassOwner,
+                            replaceMethodName, replaceMethodDesc, false);
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 成员变量加载hook
+     *
+     * @param mv
+     * @param opcode
+     * @param owner
+     * @param name
+     * @param desc
+     * @param currentScanMethodName
+     * @return
+     */
+    private boolean invokeVisitFieldInsn(MethodVisitor mv, int opcode, String owner, String name,
+                                         String desc, String currentScanMethodName) {
+        if (MethodCallRecordExtension.fieldTest != null
+                && MethodCallRecordExtension.fieldTest.contains(name)) {
+            LogUtils.log("\n\n\n\n----------测试打印数据---form 变量引用 -->>>>>"
+                    + "\nopcode(要访问的类型指令的操作码):" + opcode
+                    + "\nowner（变量归属类）:" + owner
+                    + "\nname（变量名）:" + name
+                    + "\ndesc（变量描述）:" + desc
+                    + "\noutMethodName（引用处类名_方法名）:"
+                    + currentScanClass + "_" + currentScanMethodName);
+        }
+
+        if (MethodCallRecordExtension.replaceFieldInvokeMap != null) {
+            String key = owner + "." + name + "." + desc;
+            if (MethodCallRecordExtension.replaceFieldInvokeMap.containsKey(key)) {
+                List<String> list = MethodCallRecordExtension.replaceFieldInvokeMap.get(key);
+                if (list != null && list.size() == 3) {
+                    String classOwner = list.get(0);
+                    String methodName = list.get(1);
+                    String methodDesc = list.get(2);
+
+                    //安全处理：避免同一个类替换，防止陷入死循环，
+                    //另外也可以通过配置 MethodCallRecordExtension.ignorePath
+                    //来主动过滤（这里这么写主要是防止用户忘记配置ignorePath的情况）
+                    if (currentScanClass.equals(classOwner)) {
+                        LogUtils.loge("\n\n\n\n-----提醒----返回安全处理：字段替换禁止同一个类的变量引用替换，避免陷入死循环-->>>>>"
+                                + "\n当前扫描类：" + currentScanClass
+                                + "\n替换方法：" + classOwner + "." + methodName + methodDesc);
+                    } else if (!TextUtils.isEmpty(classOwner)
+                            && !TextUtils.isEmpty(methodName)
+                            && !TextUtils.isEmpty(methodDesc)) {
+                        LogUtils.log("\n\n\n\n----------开始替换变量引用为方法引用-->>>>>"
+                                + "\n当前命中:" + key
+                                + "\n替换成:" + classOwner + "." + methodName + methodDesc
+                                + "\noutMethodName（引用处类名_方法名）:" + currentScanClass + "_" + currentScanMethodName);
+                        //把变量访问修改为调用方法
+                        mv.visitMethodInsn(INVOKESTATIC, classOwner, methodName, methodDesc, false);
+                        //返回，不再插入访问变量指令
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 打印方法调用信息
+     */
+    private void printMethodInfo(int opcode, String owner, String name,
+                                 String descriptor, boolean isInterface, int access, String signature,
+                                 String currentScanClass, AtomicBoolean isInvokeLoadLibrary) {
+        if (MethodCallRecordExtension.methodTest != null
+                && MethodCallRecordExtension.methodTest.contains(name)) {
+            LogUtils.log("\n\n\n\n----------测试打印数据---方法调用（与onMethodEnter 可能存在重复打印） -->>>>>"
+                    + "\nopcode（方法调用指令）:" + opcode
+                    + "\nowner（方法归属类）:" + owner
+                    + "\naccess（方法修饰符）:" + access
+                    + "\nname（方法名）:" + name
+                    + "\nisInterface（是否接口方法）:" + isInterface
+                    + "\ndescriptor（方法描述（就是（参数列表）返回值类型拼接））:" + descriptor
+                    + "\nsignature（方法泛型信息：）:" + signature
+                    + "\nclassName（当前扫描的类名）:" + currentScanClass);
+
+            //针对loadLibrary 的特别处理，因为我们想筛查load的是什么so，
+            //一般我们写法会loadLibrary（"xxxx"）,我们把所有的字符串类型常量都打印出来，
+            //协助我们筛查
+            if ("java/lang/System".equals(owner)
+                    && "loadLibrary".equals(name)
+                    && "(Ljava/lang/String;)V".equals(descriptor)) {
+                isInvokeLoadLibrary.set(true);
+            }
+        }
+    }
+
+
+    /**
+     * 匹配方法（含方法体进入和方法调用），进行插桩
+     *
+     * @param owner      方法实现或归属类
+     * @param name       方法名
+     * @param descriptor 方法描述符
+     * @param map        用户配置信息
+     */
+    private void hookMethod(MethodVisitor mv, String currentScanMethodName, String owner, String name,
+                            String descriptor, Map<String, List<String>> map) {
+        if (map != null && map.size() > 0) {
+
+            String methodNameAndDesc = name + descriptor;
+
+            //下面三个是并集，如果填入重复（比如空值key填入的方法和下面两个有重复的情况），则会多次插入
+            //仅方法匹配，不关心方法归属类或者实现接口
+            hook(mv, currentScanMethodName, map, methodNameAndDesc, "");
+            //匹配方法实现类
+            hook(mv, currentScanMethodName, map, methodNameAndDesc, owner);
+            //匹配方法归属的接口
+            for (String anInterface : mInterfaces) {
+                if (hook(mv, currentScanMethodName, map, methodNameAndDesc, anInterface)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 匹配插桩
+     *
+     * @param mv
+     * @param outMethodName
+     * @param map
+     * @param methodNameAndDesc
+     * @param key
+     * @return
+     */
+    private boolean hook(MethodVisitor mv, String outMethodName, Map<String, List<String>> map,
+                         String methodNameAndDesc, String key) {
+        if (map.containsKey(key)) {
+            List<String> methodList = map.get(key);
+            if (methodList != null && methodList.contains(methodNameAndDesc)) {
+                //命中插桩
+                if (methodNameAndDesc != null) {
+                    LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>"
+                            + "\n引用处类名_方法名：" + currentScanClass + "_" + outMethodName
+                            + "\n调用的方法归属类_方法:" + key + "_" + methodNameAndDesc);
+                    //加载一个常量(当前所在类、调用处的方法、被调用的方法)
+                    //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
+                    if (mLastLine != -1) {
+                        try {
+                            //标签标示字节码的位置，用于指定紧随其后的指令
+                            Label label = new Label();
+                            mv.visitLabel(label);
+                            mv.visitLineNumber(mLastLine, label);
+                        } catch (Exception e) {
+                            LogUtils.loge("发生异常：" + e.getMessage() + " mLastLine：" + mLastLine);
+                            e.printStackTrace();
+                        }
+
+                    }
+                    mv.visitLdcInsn(currentScanClass + "." + outMethodName + " call: " + methodNameAndDesc);
+                    //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
+                    mv.visitMethodInsn(INVOKESTATIC, sdkClassPath,
+                            "recordMethodCall", "(Ljava/lang/String;)V", false);
+
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     private boolean isSdkPath() {
-        return sdkClassPath.equals(className) || isIgnore();
+        return sdkClassPath.equals(currentScanClass) || isIgnore();
     }
 
     private boolean isIgnore() {
         for (String path : MethodCallRecordExtension.ignorePath) {
-            if (className.startsWith(path)) {
+            if (currentScanClass.startsWith(path)) {
                 return true;
             }
         }
