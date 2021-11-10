@@ -1,5 +1,6 @@
 package com.gamehelper.plugin;
 
+import static org.gradle.internal.impldep.org.objectweb.asm.Opcodes.ASM7;
 import static org.objectweb.asm.Opcodes.ASM6;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
@@ -27,7 +28,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     MethodCallRecordClassAdapter(final ClassVisitor cv) {
         //注意这里的版本号要留意，不同版本可能会抛出异常，仔细观察异常
-        super(ASM6, cv);
+        super(ASM7, cv);
     }
 
     /**
@@ -177,7 +178,8 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                             + "\nsignature（方法泛型信息：）:" + signature
                             + "\nclassName（当前扫描的类名）:" + currentScanClass);
                 }
-                hookMethod(mv, currentScanMethodName, currentScanClass, currentScanMethodName,
+                hookMethod("onMethodEnter(进入方法体)", mv, currentScanMethodName,
+                        currentScanClass, currentScanMethodName,
                         desc, MethodCallRecordExtension.hookMethodEnterMap);
             }
 
@@ -212,7 +214,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                 printMethodInfo(opcode, owner, name, descriptor, isInterface, access, signature,
                         currentScanClass, isInvokeLoadLibrary);
                 //方法调用处插桩（不影响原有运行逻辑）
-                hookMethod(mv, currentScanMethodName, owner, name, descriptor,
+                hookMethod("visitMethodInsn(调用方法)", mv, currentScanMethodName, owner, name, descriptor,
                         MethodCallRecordExtension.hookMethodInvokeMap);
                 //替换方法调用（替换了原有方法调用，自行实现方法逻辑）
                 if (replaceInvokeMethod(this, owner, name, descriptor)) {
@@ -364,7 +366,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
      * @param descriptor 方法描述符
      * @param map        用户配置信息
      */
-    private void hookMethod(MethodVisitor mv, String currentScanMethodName, String owner, String name,
+    private void hookMethod(String tips, MethodVisitor mv, String currentScanMethodName, String owner, String name,
                             String descriptor, Map<String, List<String>> map) {
         if (map != null && map.size() > 0) {
 
@@ -372,12 +374,12 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
             //下面三个是并集，如果填入重复（比如空值key填入的方法和下面两个有重复的情况），则会多次插入
             //仅方法匹配，不关心方法归属类或者实现接口
-            hook(mv, currentScanMethodName, map, methodNameAndDesc, "");
+            hook(tips, mv, currentScanMethodName, map, methodNameAndDesc, "");
             //匹配方法实现类
-            hook(mv, currentScanMethodName, map, methodNameAndDesc, owner);
+            hook(tips, mv, currentScanMethodName, map, methodNameAndDesc, owner);
             //匹配方法归属的接口
             for (String anInterface : mInterfaces) {
-                if (hook(mv, currentScanMethodName, map, methodNameAndDesc, anInterface)) {
+                if (hook(tips, mv, currentScanMethodName, map, methodNameAndDesc, anInterface)) {
                     break;
                 }
             }
@@ -394,14 +396,14 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
      * @param key
      * @return
      */
-    private boolean hook(MethodVisitor mv, String outMethodName, Map<String, List<String>> map,
-                         String methodNameAndDesc, String key) {
+    private boolean hook(String tips, MethodVisitor mv, String outMethodName, Map<String,
+            List<String>> map, String methodNameAndDesc, String key) {
         if (map.containsKey(key)) {
             List<String> methodList = map.get(key);
             if (methodList != null && methodList.contains(methodNameAndDesc)) {
                 //命中插桩
                 if (methodNameAndDesc != null) {
-                    LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>"
+                    LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>from:" + tips
                             + "\n引用处类名_方法名：" + currentScanClass + "_" + outMethodName
                             + "\n调用的方法归属类_方法:" + key + "_" + methodNameAndDesc);
                     //加载一个常量(当前所在类、调用处的方法、被调用的方法)

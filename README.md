@@ -447,6 +447,7 @@ outMethodName（引用处类名_方法名）:com/canzhang/asmdemo/MainActivity_o
 ```
 isNeedWriteLogToLocal = true//默认关闭
 ```
+添加后会在项目根目录生成`method_call_plugin_hook_log.txt`,方便插桩日志的查看。
 #### 5、在主工程中的 `gradle.properties`配置开关
 ```
 #注意不要有空格,如果想关闭插件，则设置为false即可，默认为关闭状态

@@ -9,11 +9,11 @@ dependencies {
     implementation 'commons-io:commons-io:2.6'
     implementation 'commons-codec:commons-codec:1.10'
     //noinspection GradleDependency
-    implementation 'org.ow2.asm:asm:6.0'
+    implementation 'org.ow2.asm:asm:7.0'
     //noinspection GradleDependency
-    implementation 'org.ow2.asm:asm-util:6.0'
+    implementation 'org.ow2.asm:asm-util:7.0'
     //noinspection GradleDependency
-    implementation 'org.ow2.asm:asm-commons:6.0'
+    implementation 'org.ow2.asm:asm-commons:7.0'
     implementation 'com.quinn.hunter:hunter-transform:1.0.0'
 }
 repositories {
@@ -24,19 +24,19 @@ repositories {
 uploadArchives {
     repositories.mavenDeployer {
         //本地仓库路径，以放到项目根目录下的 repo 的文件夹为例（测试阶段用本地仓库测试）
-        repository(url: uri('../repo'))
+//        repository(url: uri('../repo'))
         //远程仓库
-//        repository(url: "https://mirrors.tencent.com/repository/maven/tencent_public/") {
-//            Properties properties = new Properties()
-//            properties.load(project.rootProject.file('local.properties').newDataInputStream())
-//            //仓库的用户名和密码
-//            String name = properties.getProperty('mavenUser')
-//            String psw = properties.getProperty('mavenPassword')
-//            if (name == null || psw == null) {
-//                throw new RuntimeException("please config your maven name and password")
-//            }
-//            authentication(userName: name, password: psw)
-//        }
+        repository(url: "https://mirrors.tencent.com/repository/maven/tencent_public/") {
+            Properties properties = new Properties()
+            properties.load(project.rootProject.file('local.properties').newDataInputStream())
+            //仓库的用户名和密码
+            String name = properties.getProperty('mavenUser')
+            String psw = properties.getProperty('mavenPassword')
+            if (name == null || psw == null) {
+                throw new RuntimeException("please config your maven name and password")
+            }
+            authentication(userName: name, password: psw)
+        }
 
 
         //groupId ，自行定义

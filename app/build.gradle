@@ -102,6 +102,7 @@ methodCallRecordExtension {
                                                                                                                                    "getStringImpl",
                                                                                                                                    "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
     ]
+    isNeedWriteLogToLocal=true
 
     fieldTest = ["BRAND", "myTestField"]
 
