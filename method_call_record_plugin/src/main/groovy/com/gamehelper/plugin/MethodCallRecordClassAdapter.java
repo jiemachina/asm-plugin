@@ -28,7 +28,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     MethodCallRecordClassAdapter(final ClassVisitor cv) {
         //注意这里的版本号要留意，不同版本可能会抛出异常，仔细观察异常
-        super(ASM7, cv);
+        super(ASM6, cv);
     }
 
     /**

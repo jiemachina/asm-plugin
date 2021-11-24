@@ -505,6 +505,14 @@ android.enableD8.desugaring=false
 
 
 ## 升级日志
+### 1.0.8-SNAPSHOT & (2021-11-22)
+#### Features
+* 升级至ASM7（这里注意升级此版本需要配置工程asm版本到7，避免编译报错）
+
+### 1.0.7-SNAPSHOT & (2021-11-22)
+#### Features
+* 调整lib库包名格式（符合公司代码规范）
+
 ### 1.0.6-SNAPSHOT (2021-10-12)
 #### Features
 * 新增插桩日志写到本地，方便查看日志 ，开关`isNeedWriteLogToLocal`
