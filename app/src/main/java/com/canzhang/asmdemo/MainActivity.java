@@ -10,6 +10,7 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -85,11 +86,14 @@ public class MainActivity extends AppCompatActivity {
      * 测试常用敏感函数 hook 以及替换实现方法
      */
 
+    @JavascriptInterface
     @SuppressLint("MissingPermission")
     public static String getPhoneNumber(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         return telephonyManager.getLine1Number();
     }
+
+
 
     public String getDeviceId() {
         //测试敏感函数调用

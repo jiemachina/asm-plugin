@@ -14,33 +14,41 @@ methodCallRecordExtension {
      * key：所调用方法的归属类,或者是归属类所实现的接口（比如常见的接口，其实方法归属类都是内部类，名字就比较多了，但是都会实现统一的接口，这种场景我们就填入接口），可填写空值表示仅匹配方法名和方法描述符。
      * value:所调用方法的方法名+描述符（描述符指的是方法的入参和返回值描述，不会写的话可以使用上方的methodTest 打印出来）
      */
-    hookMethodEnterMap = ["android/view/View\$OnClickListener"
-                                                                                                                               : ["onClick(Landroid/view/View;)V"],
-                          "android/content/DialogInterface\$OnClickListener"
-                                                                                                                               : ["onClick(Landroid/content/DialogInterface;I)V"],
-                          "android/content/DialogInterface\$OnMultiChoiceClickListener"                                        : ["onClick(Landroid/content/DialogInterface;IZ)V"],
-                          "android/widget/CompoundButton\$OnCheckedChangeListener"                                             : ["onCheckedChanged(Landroid/widget/CompoundButton;Z)V"],
-                          "android/widget/RadioGroup\$OnCheckedChangeListener"                                                 : ["onCheckedChanged(Landroid/widget/RadioGroup;I)V"],
-                          "android/widget/RatingBar\$OnRatingBarChangeListener"                                                : ["onRatingChanged(Landroid/widget/RatingBar;FZ)V"],
-                          "android/widget/SeekBar\$OnSeekBarChangeListener"                                                    : ["onStopTrackingTouch(Landroid/widget/SeekBar;)V"],
-                          "android/widget/AdapterView\$OnItemSelectedListener"                                                 : ["onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"],
-                          "android/widget/TabHost\$OnTabChangeListener"                                                        : ["onTabChanged(Ljava/lang/String;)V"],
-                          "android/widget/AdapterView\$OnItemClickListener"                                                    : ["onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"],
-                          "android/widget/ExpandableListView\$OnGroupClickListener"                                            : ["onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z"],
-                          "android/widget/ExpandableListView\$OnChildClickListener"                                            : ["onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z"],
-                          "android/widget/Toolbar\$OnMenuItemClickListener"                                                    : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
-                          "android/support/v7/widget/Toolbar\$OnMenuItemClickListener"                                         : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
-                          "androidx/appcompat/widget/Toolbar\$OnMenuItemClickListener"                                         : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
-                          "android/widget/PopupMenu\$OnMenuItemClickListener"                                                  : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
-                          "androidx/appcompat/widget/PopupMenu\$OnMenuItemClickListener"                                       : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
-                          "android/support/v7/widget/PopupMenu\$OnMenuItemClickListener"                                       : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
-                          "com/google/android/material/navigation/NavigationView\$OnNavigationItemSelectedListener"            : ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
-                          "android/support/design/widget/NavigationView\$OnNavigationItemSelectedListener"                     : ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
-                          "android/support/design/widget/BottomNavigationView\$OnNavigationItemSelectedListene"                : ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
-                          "com/google/android/material/bottomnavigation/BottomNavigationView\$OnNavigationItemSelectedListener": ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
-                          "android/support/design/widget/TabLayout\$OnTabSelectedListener"                                     : ["onTabSelected(Landroid/support/design/widget/TabLayout\$Tab;)V"],
-                          "com/google/android/material/tabs/TabLayout\$OnTabSelectedListener"                                  : ["onTabSelected(Lcom/google/android/material/tabs/TabLayout\$Tab;)V"],
-    ]
+//    hookMethodEnterMap = ["android/view/View\$OnClickListener"
+//                                                                                                                               : ["onClick(Landroid/view/View;)V"],
+//                          "android/content/DialogInterface\$OnClickListener"
+//                                                                                                                               : ["onClick(Landroid/content/DialogInterface;I)V"],
+//                          "android/content/DialogInterface\$OnMultiChoiceClickListener"                                        : ["onClick(Landroid/content/DialogInterface;IZ)V"],
+//                          "android/widget/CompoundButton\$OnCheckedChangeListener"                                             : ["onCheckedChanged(Landroid/widget/CompoundButton;Z)V"],
+//                          "android/widget/RadioGroup\$OnCheckedChangeListener"                                                 : ["onCheckedChanged(Landroid/widget/RadioGroup;I)V"],
+//                          "android/widget/RatingBar\$OnRatingBarChangeListener"                                                : ["onRatingChanged(Landroid/widget/RatingBar;FZ)V"],
+//                          "android/widget/SeekBar\$OnSeekBarChangeListener"                                                    : ["onStopTrackingTouch(Landroid/widget/SeekBar;)V"],
+//                          "android/widget/AdapterView\$OnItemSelectedListener"                                                 : ["onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"],
+//                          "android/widget/TabHost\$OnTabChangeListener"                                                        : ["onTabChanged(Ljava/lang/String;)V"],
+//                          "android/widget/AdapterView\$OnItemClickListener"                                                    : ["onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V"],
+//                          "android/widget/ExpandableListView\$OnGroupClickListener"                                            : ["onGroupClick(Landroid/widget/ExpandableListView;Landroid/view/View;IJ)Z"],
+//                          "android/widget/ExpandableListView\$OnChildClickListener"                                            : ["onChildClick(Landroid/widget/ExpandableListView;Landroid/view/View;IIJ)Z"],
+//                          "android/widget/Toolbar\$OnMenuItemClickListener"                                                    : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
+//                          "android/support/v7/widget/Toolbar\$OnMenuItemClickListener"                                         : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
+//                          "androidx/appcompat/widget/Toolbar\$OnMenuItemClickListener"                                         : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
+//                          "android/widget/PopupMenu\$OnMenuItemClickListener"                                                  : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
+//                          "androidx/appcompat/widget/PopupMenu\$OnMenuItemClickListener"                                       : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
+//                          "android/support/v7/widget/PopupMenu\$OnMenuItemClickListener"                                       : ["onMenuItemClick(Landroid/view/MenuItem;)Z"],
+//                          "com/google/android/material/navigation/NavigationView\$OnNavigationItemSelectedListener"            : ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
+//                          "android/support/design/widget/NavigationView\$OnNavigationItemSelectedListener"                     : ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
+//                          "android/support/design/widget/BottomNavigationView\$OnNavigationItemSelectedListene"                : ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
+//                          "com/google/android/material/bottomnavigation/BottomNavigationView\$OnNavigationItemSelectedListener": ["onNavigationItemSelected(Landroid/view/MenuItem;)Z"],
+//                          "android/support/design/widget/TabLayout\$OnTabSelectedListener"                                     : ["onTabSelected(Landroid/support/design/widget/TabLayout\$Tab;)V"],
+//                          "com/google/android/material/tabs/TabLayout\$OnTabSelectedListener"                                  : ["onTabSelected(Lcom/google/android/material/tabs/TabLayout\$Tab;)V"],
+//    ]
+
+    /**
+     * 监控指定注解注解的方法体进入
+     *
+     * @ key :注解描述  如：Landroid/webkit/JavascriptInterface;
+     * @ value :是否运行时注解 如：ture 表示运行时注解
+     */
+    hookAnnotationMethodEnterMap = ["Landroid/webkit/JavascriptInterface;":true]
     /**
      * 方法调用插桩：精准匹配（用于监控方法调用情况，因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
      * key：所调用方法的归属类
@@ -48,18 +56,18 @@ methodCallRecordExtension {
      *
      * 下面配置的是一些常见敏感api，用于监控敏感api的调用情况。
      */
-    hookMethodInvokeMap = [
-            "android/telephony/TelephonyManager": ["getLine1Number()Ljava/lang/String;",
-                                                   "getDeviceId()Ljava/lang/String;",
-                                                   "getSimSerialNumber()Ljava/lang/String;",
-                                                   "getSubscriberId()Ljava/lang/String;"],
-            "android/net/wifi/WifiInfo"         : ["getMacAddress()Ljava/lang/String;",
-                                                   "getSSID()Ljava/lang/String;"],
-            "java/net/NetworkInterface"         : ["getInetAddresses()Ljava/util/Enumeration;"],
-            "java/net/InetAddress"              : ["getHostAddress()Ljava/lang/String;"],
-            "android/provider/Settings\$System" : ["getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
-            "android/provider/Settings\$Secure" : ["getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"]
-    ]
+//    hookMethodInvokeMap = [
+//            "android/telephony/TelephonyManager": ["getLine1Number()Ljava/lang/String;",
+//                                                   "getDeviceId()Ljava/lang/String;",
+//                                                   "getSimSerialNumber()Ljava/lang/String;",
+//                                                   "getSubscriberId()Ljava/lang/String;"],
+//            "android/net/wifi/WifiInfo"         : ["getMacAddress()Ljava/lang/String;",
+//                                                   "getSSID()Ljava/lang/String;"],
+//            "java/net/NetworkInterface"         : ["getInetAddresses()Ljava/util/Enumeration;"],
+//            "java/net/InetAddress"              : ["getHostAddress()Ljava/lang/String;"],
+//            "android/provider/Settings\$System" : ["getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
+//            "android/provider/Settings\$Secure" : ["getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"]
+//    ]
 
     /**
      * 配置忽略插桩的模块 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
@@ -70,44 +78,44 @@ methodCallRecordExtension {
      * key : 需要替换的 方法归属类+"."+方法名+方法描述   如：android/telephony/TelephonyManager.getLine1Number()Ljava/lang/String;
      * list item value : 替换成  index0=类名，如：com/canzhang/ImplTelephonyManager；  index1=方法名，如：getLine1Number；  index2=方法描述符，如：  ()Ljava/lang/String; ； 严格按照顺序填入
      */
-    replaceMethodInvokeMap = [
-            "android/telephony/TelephonyManager.getLine1Number()Ljava/lang/String;"                                             : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getPhoneNumberImpl",
-                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
-            "android/telephony/TelephonyManager.getDeviceId()Ljava/lang/String;"                                                : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getDeviceIdImpl",
-                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
-            "android/telephony/TelephonyManager.getSimSerialNumber()Ljava/lang/String;"                                         : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getSimSerialNumberImpl",
-                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
-            "android/telephony/TelephonyManager.getSubscriberId()Ljava/lang/String;"                                            : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getSubscriberIdImpl",
-                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
-            "android/net/wifi/WifiInfo.getMacAddress()Ljava/lang/String;"                                                       : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getMacAddressImpl",
-                                                                                                                                   "(Landroid/net/wifi/WifiInfo;)Ljava/lang/String;"],
-            "android/net/wifi/WifiInfo.getSSID()Ljava/lang/String;"                                                             : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getSSIDImpl",
-                                                                                                                                   "(Landroid/net/wifi/WifiInfo;)Ljava/lang/String;"],
-            "java/net/NetworkInterface.getInetAddresses()Ljava/util/Enumeration;"                                               : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getInetAddressesImpl",
-                                                                                                                                   "(Ljava/net/NetworkInterface;)Ljava/util/Enumeration;"],
-            "java/net/InetAddress.getHostAddress()Ljava/lang/String;"                                                           : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getHostAddressImpl",
-                                                                                                                                   "(Ljava/net/InetAddress;)Ljava/lang/String;"],
-            "android/provider/Settings\$System.getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getStringImpl",
-                                                                                                                                   "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
-            "android/provider/Settings\$Secure.getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
-                                                                                                                                   "getStringImpl",
-                                                                                                                                   "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
-    ]
+//    replaceMethodInvokeMap = [
+//            "android/telephony/TelephonyManager.getLine1Number()Ljava/lang/String;"                                             : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getPhoneNumberImpl",
+//                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+//            "android/telephony/TelephonyManager.getDeviceId()Ljava/lang/String;"                                                : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getDeviceIdImpl",
+//                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+//            "android/telephony/TelephonyManager.getSimSerialNumber()Ljava/lang/String;"                                         : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getSimSerialNumberImpl",
+//                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+//            "android/telephony/TelephonyManager.getSubscriberId()Ljava/lang/String;"                                            : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getSubscriberIdImpl",
+//                                                                                                                                   "(Landroid/telephony/TelephonyManager;)Ljava/lang/String;"],
+//            "android/net/wifi/WifiInfo.getMacAddress()Ljava/lang/String;"                                                       : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getMacAddressImpl",
+//                                                                                                                                   "(Landroid/net/wifi/WifiInfo;)Ljava/lang/String;"],
+//            "android/net/wifi/WifiInfo.getSSID()Ljava/lang/String;"                                                             : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getSSIDImpl",
+//                                                                                                                                   "(Landroid/net/wifi/WifiInfo;)Ljava/lang/String;"],
+//            "java/net/NetworkInterface.getInetAddresses()Ljava/util/Enumeration;"                                               : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getInetAddressesImpl",
+//                                                                                                                                   "(Ljava/net/NetworkInterface;)Ljava/util/Enumeration;"],
+//            "java/net/InetAddress.getHostAddress()Ljava/lang/String;"                                                           : ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getHostAddressImpl",
+//                                                                                                                                   "(Ljava/net/InetAddress;)Ljava/lang/String;"],
+//            "android/provider/Settings\$System.getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getStringImpl",
+//                                                                                                                                   "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
+//            "android/provider/Settings\$Secure.getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceInvokeMethodApi",
+//                                                                                                                                   "getStringImpl",
+//                                                                                                                                   "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;"],
+//    ]
     isNeedWriteLogToLocal=true
 
-    fieldTest = ["BRAND", "myTestField"]
+//    fieldTest = ["BRAND", "myTestField"]
 
-    replaceFieldInvokeMap = ["android/os/Build.BRAND.Ljava/lang/String;"                     : ["com/canzhang/asmdemo/sdk/ReplaceFieldApi", "getBrand", "()Ljava/lang/String;"],
-                             "com/canzhang/asmdemo/sdk/MyTest.myTestField.Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceFieldApi", "getMyTestField", "(Lcom/canzhang/asmdemo/sdk/MyTest;)Ljava/lang/String;"]]
+//    replaceFieldInvokeMap = ["android/os/Build.BRAND.Ljava/lang/String;"                     : ["com/canzhang/asmdemo/sdk/ReplaceFieldApi", "getBrand", "()Ljava/lang/String;"],
+//                             "com/canzhang/asmdemo/sdk/MyTest.myTestField.Ljava/lang/String;": ["com/canzhang/asmdemo/sdk/ReplaceFieldApi", "getMyTestField", "(Lcom/canzhang/asmdemo/sdk/MyTest;)Ljava/lang/String;"]]
 }
 
 android {

@@ -24,7 +24,6 @@ public class MethodCallRecordExtension {
      *
      * @ key : 需要替换的 方法归属类+"."+方法名+方法描述
      * 如：android/telephony/TelephonyManager.getLine1Number()Ljava/lang/String;
-     *
      * @ list item value : 替换成
      * index0=类名，如：com/canzhang/ImplTelephonyManager；
      * index1=方法名，如：getLine1Number；
@@ -38,7 +37,6 @@ public class MethodCallRecordExtension {
      *
      * @ key : 需要替换的 变量归属类+"."+变量名+"."+变量类型描述
      * 如：android/os/Build.BRAND.Ljava/lang/String;
-     *
      * @ list item value : 替换成
      * index0=类名，如：com/canzhang/asmdemo/sdk/ReplaceFieldApi；
      * index1=获取方法名，如：getBrand；
@@ -56,11 +54,19 @@ public class MethodCallRecordExtension {
      */
     public static Map<String, List<String>> hookMethodEnterMap = new HashMap<>();
 
+    /**
+     * 监控指定注解注解的方法体进入
+     *
+     * @ key :注解描述  如：Landroid/webkit/JavascriptInterface;
+     * @ value :是否运行时注解
+     */
+    public static Map<String, Boolean> hookAnnotationMethodEnterMap = new HashMap<>();
+
 
     /**
      * 不知类的路径，和方法描述怎么写，可以在这里添加方法名，然后build一下会自动打印出来
      * (无论是方法调用，还是方法体进入，这里都会打印，以保证监控到所有情况，可能会重复打印）
-     *
+     * <p>
      * item value: 方法名：如 getLine1Number8
      */
     public static List<String> methodTest = new ArrayList<>();

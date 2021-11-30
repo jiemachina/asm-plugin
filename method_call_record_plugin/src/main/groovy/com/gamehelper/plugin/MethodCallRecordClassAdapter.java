@@ -5,16 +5,19 @@ import static org.objectweb.asm.Opcodes.ASM6;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import org.apache.http.util.TextUtils;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.TypePath;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  * ClassVisitor:主要负责遍历类的信息，包括类上的注解、构造方法、字段等等。
@@ -28,7 +31,7 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
 
     MethodCallRecordClassAdapter(final ClassVisitor cv) {
         //注意这里的版本号要留意，不同版本可能会抛出异常，仔细观察异常
-        super(ASM6, cv);
+        super(ASM7, cv);
     }
 
     /**
@@ -84,6 +87,14 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
     private MethodVisitor getMethodVisitor(int access, String currentScanMethodName, String desc, String signature,
                                            MethodVisitor mv, AtomicBoolean isInvokeLoadLibrary, List<String> mLdcList) {
         mv = new AdviceAdapter(ASM6, mv, access, currentScanMethodName, desc) {
+            final List<Pair<String, Boolean>> methodAnnotations = new ArrayList<>();
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                methodAnnotations.add(new Pair<>(descriptor, visible));
+                return super.visitAnnotation(descriptor, visible);
+
+            }
 
 
             /**
@@ -181,6 +192,25 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
                 hookMethod("onMethodEnter(进入方法体)", mv, currentScanMethodName,
                         currentScanClass, currentScanMethodName,
                         desc, MethodCallRecordExtension.hookMethodEnterMap);
+
+
+                if (methodAnnotations.size() > 0) {
+                    for (Pair<String, Boolean> item : methodAnnotations) {
+                        //是否需要记录调用点
+                        if (MethodCallRecordExtension.hookAnnotationMethodEnterMap != null
+                                && MethodCallRecordExtension.hookAnnotationMethodEnterMap.containsKey(item.getKey())
+                                && MethodCallRecordExtension.hookAnnotationMethodEnterMap
+                                .get(item.getKey()) == item.getValue()) {
+                            writeCode("onMethodEnter(进入有" + item.getKey() + "注解的方法体)",
+                                    mv, currentScanMethodName, currentScanMethodName, currentScanClass);
+
+                            break;
+
+                        }
+                    }
+                }
+
+
             }
 
 
@@ -401,35 +431,40 @@ public final class MethodCallRecordClassAdapter extends ClassVisitor {
         if (map.containsKey(key)) {
             List<String> methodList = map.get(key);
             if (methodList != null && methodList.contains(methodNameAndDesc)) {
-                //命中插桩
-                if (methodNameAndDesc != null) {
-                    LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>from:" + tips
-                            + "\n引用处类名_方法名：" + currentScanClass + "_" + outMethodName
-                            + "\n调用的方法归属类_方法:" + key + "_" + methodNameAndDesc);
-                    //加载一个常量(当前所在类、调用处的方法、被调用的方法)
-                    //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
-                    if (mLastLine != -1) {
-                        try {
-                            //标签标示字节码的位置，用于指定紧随其后的指令
-                            Label label = new Label();
-                            mv.visitLabel(label);
-                            mv.visitLineNumber(mLastLine, label);
-                        } catch (Exception e) {
-                            LogUtils.loge("发生异常：" + e.getMessage() + " mLastLine：" + mLastLine);
-                            e.printStackTrace();
-                        }
-
-                    }
-                    mv.visitLdcInsn(currentScanClass + "." + outMethodName + " call: " + methodNameAndDesc);
-                    //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
-                    mv.visitMethodInsn(INVOKESTATIC, sdkClassPath,
-                            "recordMethodCall", "(Ljava/lang/String;)V", false);
-
-                }
+                writeCode(tips, mv, outMethodName, methodNameAndDesc, key);
             }
             return true;
         }
         return false;
+    }
+
+    private void writeCode(String tips, MethodVisitor mv, String outMethodName,
+                           String methodNameAndDesc, String ownerClass) {
+        //命中插桩
+        if (methodNameAndDesc != null) {
+            LogUtils.log("\n\n----------开始插桩,用于记录调用点----->>>from:" + tips
+                    + "\n引用处类名_方法名：" + currentScanClass + "_" + outMethodName
+                    + "\n调用的方法归属类_方法:" + ownerClass + "_" + methodNameAndDesc);
+            //加载一个常量(当前所在类、调用处的方法、被调用的方法)
+            //这里插入和上一指令相同的行号，方便快速定位到代码（为了简单实现没有新增行号，避免逻辑过于复杂）
+            if (mLastLine != -1) {
+                try {
+                    //标签标示字节码的位置，用于指定紧随其后的指令
+                    Label label = new Label();
+                    mv.visitLabel(label);
+                    mv.visitLineNumber(mLastLine, label);
+                } catch (Exception e) {
+                    LogUtils.loge("发生异常：" + e.getMessage() + " mLastLine：" + mLastLine);
+                    e.printStackTrace();
+                }
+
+            }
+            mv.visitLdcInsn(currentScanClass + "." + outMethodName + " call: " + methodNameAndDesc + "\n" + tips);
+            //调用我们自定义的方法 (注意用/,不是.; 方法描述记得；也要)
+            mv.visitMethodInsn(INVOKESTATIC, sdkClassPath,
+                    "recordMethodCall", "(Ljava/lang/String;)V", false);
+
+        }
     }
 
     private boolean isSdkPath() {

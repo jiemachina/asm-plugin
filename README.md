@@ -76,6 +76,7 @@ methodCallRecordExtension {
 ##### 4.3 根据需要添加具体配置项
 默认不插桩，需要根据需要，选择是否添加下方的配置项。
 
+
 ###### 4.3.1 `hookMethodEnterMap`：方法体插桩
 方法体插桩（对于一些接口实现，比如常见的点击事件，其调用处是系统api，这导致我们同样无法插桩，这时候就需要我们在方法体，也就是接口实现处进行插桩监控，所用asm api :onMethodEnter）
 首先区分一下`方法体`和`方法调用`
@@ -175,8 +176,22 @@ hookMethodEnterMap = ["android/view/View\$OnClickListener": ["onClick(Landroid/v
 
 ```
 
+###### 4.3.2 `hookAnnotationMethodEnterMap`：有特定注解的方法体进入hook
+用于我们想知道拥有特定注解方法的调用情况，比如我们想了解所有标记了`JavascriptInterface`注解的方法调用情况，就可以按照如下配置选项配置。
 
-###### 4.3.2 `hookMethodInvokeMap`：方法调用插桩
+```
+/**
+ * 监控指定注解注解的方法体进入
+ *
+ * @ key :注解描述  如：Landroid/webkit/JavascriptInterface;
+ * @ value :是否运行时注解 如：ture 表示运行时注解
+ */
+hookAnnotationMethodEnterMap = ["Landroid/webkit/JavascriptInterface;":true]
+
+```
+    
+
+###### 4.3.3 `hookMethodInvokeMap`：方法调用插桩
 精准匹配（用于监控方法调用情况（比如敏感函数的调用位置），因为很多api是系统api，我们无法插桩到系统api的方法体里面，所以这里筛查的是方法调用指令，所用 asm api visitMethodInsn）
 例如：
 ```
@@ -212,7 +227,7 @@ hookMethodEnterMap = ["android/view/View\$OnClickListener": ["onClick(Landroid/v
 ```
 需要打印堆栈的话，参考上方`hookMethodEnterMap`回调配置。
 
-###### 4.3.3 `replaceMethodInvokeMap`：替换方法调用
+###### 4.3.4 `replaceMethodInvokeMap`：替换方法调用
 用于直接替换调用的方法，从而实现更多自定义配置（支持静态和实例方法）（注意要自行实现替换的方法，可参考工程中的ReplaceInvokeMethodApi实现）
 
 例如我们想把敏感函数的调用替换成我们自己的方法实现，我们可以这么配置
@@ -349,7 +364,7 @@ public static String getPhoneNumber(Context context) {
     return ReplaceInvokeMethodApi.getPhoneNumberImpl(telephonyManager);
 }
 ```
-###### 4.3.4 `replaceFieldInvokeMap`：变量引用替换为方法引用
+###### 4.3.5 `replaceFieldInvokeMap`：变量引用替换为方法引用
 有些成员变量也属于敏感字段，我们可以通过这个配置项把敏感字段的引用变成方法引用，从而可以控制加载频率或者内容。
 例如：
 ```
@@ -405,7 +420,7 @@ String myTestField = ReplaceFieldApi.getMyTestField(new MyTest());
 
 
 
-###### 4.3.5 `methodTest`：日志打印测试（含方法调用和方法体进入）
+###### 4.3.6 `methodTest`：日志打印测试（含方法调用和方法体进入）
 上面的填写内容，都是字节码理解的角度填写的，如果不知道怎么写可以在这里填写下方法名，build一下即可看到日志（模糊匹配）
 例如:我们想知道`getDeviceId`的一些信息
 ```
@@ -424,11 +439,11 @@ signature（方法泛型信息：）:null
 className（当前扫描的类名）:com/canzhang/asmdemo/MainActivity
 ```
 
-###### 4.3.6 `fieldTest`：日志打印测试（字段引用处）
+###### 4.3.7 `fieldTest`：日志打印测试（字段引用处）
 可以快速打印当前字段的归属类，字段名、字段描述信息，方便填写配置
 
 
-###### 4.3.7 `ignorePath`：配置忽略插桩的模块
+###### 4.3.8 `ignorePath`：配置忽略插桩的模块
 可以配置全路径，或者父级路径（内部判断是依据这个开头的类，则忽略）
 例如：
 ```
@@ -443,7 +458,7 @@ name（变量名）:myTestField
 desc（变量描述）:Ljava/lang/String;
 outMethodName（引用处类名_方法名）:com/canzhang/asmdemo/MainActivity_onCreate
 ```
-###### 4.3.8 `isNeedWriteLogToLocal`：是否把日志输出到本地
+###### 4.3.9 `isNeedWriteLogToLocal`：是否把日志输出到本地
 ```
 isNeedWriteLogToLocal = true//默认关闭
 ```
@@ -505,6 +520,19 @@ android.enableD8.desugaring=false
 
 
 ## 升级日志
+### 1.0.9-SNAPSHOT & (2021-11-30)
+#### Features
+* 支持针对有特定注解的方法hook，方便快速知道调用了什么特定注解的方法。
+具体配置如下：
+```
+    /**
+     * 监控指定注解注解的方法体进入
+     *
+     * @ key :注解描述  如：Landroid/webkit/JavascriptInterface;
+     * @ value :是否运行时注解 如：ture 表示运行时注解
+     */
+    hookAnnotationMethodEnterMap = ["Landroid/webkit/JavascriptInterface;":true]
+```
 ### 1.0.8-SNAPSHOT & (2021-11-22)
 #### Features
 * 升级至ASM7（这里注意升级此版本需要配置工程asm版本到7，避免编译报错）
